@@ -4,7 +4,7 @@ accountsservice actionlint adw-gtk-theme age alsa-firmware alsa-plugins alsa-uti
 apitrace archlinux-xdg-menu ark atuin awesome-terminal-fonts base base-devel bash-completion bat
 bibata-cursor-theme-bin bind biome blender bluez bluez-hid2hci bluez-libs bluez-obex bluez-utils
 breeze breeze-gtk brightnessctl btop btrfs-assistant btrfs-progs bun cachy-update
-cachyos-fish-config cachyos-gaming-applications cachyos-gaming-meta cachyos-hello cachyos-hooks
+cachyos-gaming-applications cachyos-gaming-meta cachyos-hello cachyos-hooks fish-autopair
 cachyos-kernel-manager cachyos-keyring cachyos-micro-settings cachyos-mirrorlist
 cachyos-packageinstaller cachyos-rate-mirrors cachyos-settings cachyos-snapper-support
 cachyos-v3-mirrorlist cachyos-v4-mirrorlist cachyos-wallpapers cantarell-fonts cargo-deny
