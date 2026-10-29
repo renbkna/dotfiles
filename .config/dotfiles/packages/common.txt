@@ -11,7 +11,8 @@ cachyos-packageinstaller cachyos-rate-mirrors cachyos-settings cachyos-snapper-s
 cachyos-v3-mirrorlist cachyos-v4-mirrorlist cachyos-wallpapers cantarell-fonts cargo-deny
 cargo-llvm-cov cargo-nextest cargo-tauri ccache chafa char-white chatgpt-desktop-bin chromium
 chwd clamav claude-desktop cmake cmus colord cppcheck cpupower crun cryptsetup curl darkly-bin
-ddcutil device-mapper diffutils direnv dmidecode dmraid dnsmasq docker-compose dosfstools
+ddcutil deepfilternet-ladspa device-mapper diffutils direnv dmidecode dmraid dnsmasq
+docker-compose dosfstools
 dotnet-host-bin dotnet-sdk-bin duf dust e2fsprogs edk2-ovmf efibootmgr efitools en-croissant-deb
 equibop eslint ethtool exfatprogs extra-cmake-modules eza f2fs-tools fastfetch ffmpegthumbnailer
 ffmpegthumbs filelight firefox fish flatpak flutter-engine fnm frameworkintegration fsarchiver

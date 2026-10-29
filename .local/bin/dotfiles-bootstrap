@@ -14,7 +14,8 @@ if not ~/.local/bin/dotfiles-system --check >/dev/null
     sudo ~/.local/bin/dotfiles-system; or exit 1
 end
 systemctl --user daemon-reload; or exit 1
-systemctl --user enable noctalia.service monthly-trash-clean.timer gamemoded.service; or exit 1
+systemctl --user enable noctalia.service monthly-trash-clean.timer gamemoded.service \
+    filter-chain.service; or exit 1
 
 # Myna, the terminal and editor font: the AUR package lags at 1.0, so the pinned 2.0 beta
 # release (OFL-1.1) is installed from upstream and verified against its checksum.
