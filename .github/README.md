@@ -13,7 +13,7 @@ use the [Tyrian Night](https://github.com/renbkna/tyrian-night) theme.
 | Qt: qt6ct-kde + Darkly | Darkly 0.5 | `.config/qt6ct/`, `.config/darklyrc` |
 | Icons: Papirus-Dark, folders follow the palette | Papirus 20260801 | `.local/bin/papirus-noctalia-folders` |
 | Packages (pacman first, AUR through paru) | | `.config/dotfiles/packages/`, `.local/bin/dotfiles-packages` |
-| System: greetd + noctalia-greeter, Plymouth, THP, nice limit | | `.local/bin/dotfiles-system` |
+| System: greetd + noctalia-greeter, Plymouth, THP | | `.local/bin/dotfiles-system` |
 | Session: Hyprland target, Noctalia service, monthly trash cleanup | | `.config/systemd/user/` |
 | Editors: Zed and VSCodium settings and extensions | | `.config/zed/`, `.config/VSCodium/User/`, `.config/dotfiles/vscodium-extensions.txt` |
 
