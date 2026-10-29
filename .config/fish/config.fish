@@ -6,6 +6,10 @@ if status is-interactive
     command -v direnv &> /dev/null && direnv hook fish | source
     command -v zoxide &> /dev/null && zoxide init fish --cmd cd | source
 
+    # fzf: Ctrl+T inserts a fuzzy-found path, Alt+C fuzzy-cds; Ctrl+R stays with atuin
+    set -g FZF_CTRL_R_COMMAND ''
+    command -v fzf &> /dev/null && fzf --fish | source
+
     # Atuin: searchable shell history on Ctrl+R and Up
     command -v atuin &> /dev/null && atuin init fish | source
 
