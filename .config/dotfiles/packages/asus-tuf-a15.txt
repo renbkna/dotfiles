@@ -1,6 +1,6 @@
 # ASUS TUF Gaming A15 FA507RR: Ryzen 7 6800H with Radeon 680M plus an RTX 3070 Mobile.
-# Install only on this laptop (`dotfiles-packages install asus-tuf-a15`); elsewhere CachyOS's
-# chwd picks the drivers.
+# dotfiles-packages uses this list only on that board; elsewhere CachyOS's chwd picks drivers.
+# machine: FA507RR
 
 # CPU microcode and laptop audio firmware
 amd-ucode sof-firmware

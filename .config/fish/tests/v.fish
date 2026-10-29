@@ -97,7 +97,6 @@ end
 
 v reposts https://www.tiktok.com/@example "$test_root/reposts" >/dev/null; or exit 1
 expect_arg "$test_root/gallery.args" https://www.tiktok.com/@example/reposts
-expect_arg "$test_root/gallery.args" extractor.tiktok.user.include=reposts
 expect_arg "$test_root/gallery.args" "$test_root/reposts"
 
 v reposts https://www.tiktok.com/@example >/dev/null; or exit 1

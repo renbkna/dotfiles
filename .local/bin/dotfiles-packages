@@ -1,14 +1,28 @@
 #!/usr/bin/env fish
 # Installs and audits the package lists in ~/.config/dotfiles/packages/.
 #
-#   dotfiles-packages install <list>...  install what the lists name and is missing: repository
-#                                        packages with pacman, the rest from the AUR with paru
-#   dotfiles-packages diff [<list>...]   report drift between the lists (default: all of them)
-#                                        and the explicitly installed packages; exits 1 on drift
+#   dotfiles-packages install [<list>...]  make every package the lists name explicitly installed:
+#                                          missing repository packages come from pacman, the rest
+#                                          from the AUR through paru
+#   dotfiles-packages diff [<list>...]     report drift between the lists and the explicitly
+#                                          installed packages; exits 1 on drift
+#   dotfiles-packages lists                print the lists this machine uses
 #
+# Without list names both commands use this machine's lists: `common`, plus every list whose
+# `# machine: <board>` header names this machine's board (/sys/class/dmi/id/board_name).
 # A list is <name>.txt in the dotfiles_list format.
 
 set -g lists_dir ~/.config/dotfiles/packages
+
+function machine_lists
+    set -l board (string trim </sys/class/dmi/id/board_name)
+    echo common
+    for file in $lists_dir/*.txt
+        if string match -q -- "# machine: $board" <$file
+            path basename -E $file
+        end
+    end
+end
 
 function list_packages --description 'Print the packages the named lists declare, one per line'
     set -l packages
@@ -20,10 +34,16 @@ end
 
 function install_lists
     set -l listed (list_packages $argv); or return 1
-    set -l missing (comm -23 (printf '%s\n' $listed | psub) (pacman -Qq | sort -u | psub))
-    if test (count $missing) -eq 0
+    set -l pending (comm -23 (printf '%s\n' $listed | psub) (pacman -Qqe | sort -u | psub))
+    if test (count $pending) -eq 0
         echo "dotfiles-packages: everything in $argv is installed"
         return 0
+    end
+    # Installed only as a dependency: mark explicit so removing its dependent keeps it.
+    set -l dependencies (comm -12 (printf '%s\n' $pending | psub) (pacman -Qqd | sort -u | psub))
+    set -l missing (comm -23 (printf '%s\n' $pending | psub) (printf '%s\n' $dependencies | psub))
+    if test (count $dependencies) -gt 0
+        sudo pacman -D --asexplicit $dependencies; or return 1
     end
     set -l repo (comm -12 (printf '%s\n' $missing | psub) (pacman -Slq | sort -u | psub))
     set -l aur (comm -23 (printf '%s\n' $missing | psub) (printf '%s\n' $repo | psub))
@@ -38,11 +58,7 @@ function install_lists
 end
 
 function diff_lists
-    set -l names $argv
-    if test (count $names) -eq 0
-        set names (path basename -E $lists_dir/*.txt)
-    end
-    set -l listed (list_packages $names); or return 1
+    set -l listed (list_packages $argv); or return 1
     set -l installed (pacman -Qqe | sort -u)
     set -l unlisted (comm -13 (printf '%s\n' $listed | psub) (printf '%s\n' $installed | psub))
     set -l missing (comm -23 (printf '%s\n' $listed | psub) (printf '%s\n' $installed | psub))
@@ -51,16 +67,19 @@ function diff_lists
     test (count $unlisted) -eq 0 -a (count $missing) -eq 0
 end
 
-switch "$argv[1]"
+set -l command $argv[1]
+set -l names $argv[2..]
+if test (count $names) -eq 0
+    set names (machine_lists)
+end
+switch "$command"
     case install
-        if test (count $argv) -lt 2
-            echo "usage: dotfiles-packages install <list>..." >&2
-            exit 2
-        end
-        install_lists $argv[2..]
+        install_lists $names
     case diff
-        diff_lists $argv[2..]
+        diff_lists $names
+    case lists
+        printf '%s\n' $names
     case '*'
-        echo "usage: dotfiles-packages install <list>... | diff [<list>...]" >&2
+        echo "usage: dotfiles-packages install|diff [<list>...] | lists" >&2
         exit 2
 end

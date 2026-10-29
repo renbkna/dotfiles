@@ -14,8 +14,6 @@ source = auto
 [output]
 # Output method: ncurses, terminal, raw, or circle
 method = ncurses
-# Terminal color scheme
-style = stereo
 
 [color]
 # Color gradient for bars using template variables

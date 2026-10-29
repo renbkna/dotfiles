@@ -8,15 +8,15 @@ set -l dots ~/.config/dotfiles
 set -l tyrian ~/Projects/tyrian-night
 
 # Packages, system configuration and user services
-~/.local/bin/dotfiles-packages install common; or exit 1
+~/.local/bin/dotfiles-packages install; or exit 1
 if not ~/.local/bin/dotfiles-system --check >/dev/null
     sudo ~/.local/bin/dotfiles-system; or exit 1
 end
 systemctl --user daemon-reload; or exit 1
 systemctl --user enable noctalia.service monthly-trash-clean.timer gamemoded.service; or exit 1
 
-# Myna, the terminal and editor font: the AUR package lags at 1.0, so the pinned 2.0 release
-# (OFL-1.1) is installed from upstream and verified against its checksum.
+# Myna, the terminal and editor font: the AUR package lags at 1.0, so the pinned 2.0 beta
+# release (OFL-1.1) is installed from upstream and verified against its checksum.
 set -l myna_url https://github.com/sayyadirfanali/Myna/releases/download/v2.0.0.0-beta/Myna-v2.0.0-beta.zip
 set -l myna_sha256 0013ff1c868356f4dbcb9a58799a779b3c86cf2e545eafd71e3f32c38fcf8a7b
 set -l myna_dir ~/.local/share/fonts/Myna
@@ -38,8 +38,9 @@ if not test -d $tyrian/.git
     git clone https://github.com/renbkna/tyrian-night.git $tyrian; or exit 1
 end
 
-# Tyrian Night files are linked, so `git pull` in the checkout updates them. A regular file in
-# the way is left alone: it may be a local edit.
+# The terminal and Zed themes are linked, so `git pull` in the checkout updates them; VSCodium's
+# is rebuilt below. A regular file in the way may be a local edit, so the run stops instead of
+# replacing it.
 function link_as --argument-names source target
     if test -e $target; and not test -L $target
         echo "dotfiles-bootstrap: $target is not a symlink; move it aside and rerun" >&2
@@ -55,8 +56,12 @@ end
 # The Ghostty theme names the variant; fish, Starship and fastfetch follow it. Rerun after
 # changing it.
 set -l variant (string match -rg '^theme\s*=\s*(tyrian-[a-z0-9-]+)\s*$' <~/.config/ghostty/config.ghostty)
-if test (count $variant) -ne 1; or not test -f $tyrian/terminal/fish/conf.d/$variant.fish
+if test (count $variant) -ne 1
     echo "dotfiles-bootstrap: config.ghostty needs one 'theme = tyrian-<variant>' line" >&2
+    exit 1
+end
+if not test -f $tyrian/terminal/fish/conf.d/$variant.fish
+    echo "dotfiles-bootstrap: tyrian-night has no variant '$variant'" >&2
     exit 1
 end
 link_as $tyrian/terminal/fish/conf.d/$variant.fish ~/.config/fish/conf.d/tyrian-night.fish; or exit 1
@@ -69,7 +74,8 @@ link_as $tyrian/apps/zed ~/.local/share/zed/extensions/installed/tyrian-night-th
 # VSCodium: Open VSX extensions from the list, Tyrian Night built from the checkout whenever the
 # installed version differs from it.
 set -l installed (codium --list-extensions --show-versions)
-for extension in (dotfiles_list $dots/vscodium-extensions.txt)
+set -l extensions (dotfiles_list $dots/vscodium-extensions.txt); or exit 1
+for extension in $extensions
     string match -q "$extension@*" $installed; or codium --install-extension $extension; or exit 1
 end
 set -l tyrian_version (jq -r .version $tyrian/apps/vscode/package.json)
@@ -79,8 +85,8 @@ if not contains renbkna.tyrian-night@$tyrian_version $installed
     codium --install-extension $tyrian/dist/tyrian-night.vsix --force; or exit 1
 end
 
-# qt6ct.conf names the icon theme. GTK reads it from dconf and KDE apps from kdeglobals, which
-# the repository cannot carry.
+# qt6ct.conf names the icon theme (papirus-noctalia-folders builds it under that name). GTK reads
+# the name from dconf and KDE apps from kdeglobals, which the repository cannot carry.
 set -l icons (string match -rg '^icon_theme=(.+)$' <~/.config/qt6ct/qt6ct.conf)
 if test (count $icons) -ne 1
     echo "dotfiles-bootstrap: qt6ct.conf needs one icon_theme line" >&2

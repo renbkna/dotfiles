@@ -18,11 +18,11 @@ hl.config({
 -- Noctalia animates its own surfaces
 hl.layer_rule({ match = { namespace = "^noctalia-.*" }, no_anim = true })
 
--- Glass: blur behind Noctalia's translucent surfaces. ignore_alpha keeps fully transparent
--- regions (the bar strip between capsules, text-only desktop widgets) unblurred.
+-- Glass: blur behind Noctalia's translucent surfaces. ignore_alpha leaves pixels below half
+-- opacity unblurred, so the bar strip between capsules and text-only desktop widgets stay clear.
 hl.layer_rule({
 	match = {
-		namespace = "^noctalia-(bar-.+|notification|dock|panel|attached-panel|osd|window-switcher|.*panel)$",
+		namespace = "^noctalia-(bar-.+|notification|dock|osd|window-switcher|.*panel)$",
 	},
 	ignore_alpha = 0.5,
 	blur = true,
@@ -34,5 +34,6 @@ hl.layer_rule({
 	blur = true,
 })
 
--- The bar and desktop widgets only ever sit over the wallpaper
+-- The bar and desktop widgets blur the wallpaper rather than any window beneath them, so their
+-- glass looks the same everywhere
 hl.layer_rule({ match = { namespace = "^noctalia-(bar-.+|desktop-widget-.+)$" }, xray = true })

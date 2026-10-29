@@ -42,7 +42,8 @@ enable_ddcutil = true
 enabled = true
 
 # Layout for the 2560x1440 main monitor: photo and caption top right, note bottom right,
-# clock, date and media player bottom left; 96 px margins, 32 px gaps, 16 px radii.
+# clock, date and media player bottom left; 96 px from the top and side edges, 112 px from the
+# bottom, 16 px radii.
 [desktop_widgets]
 enabled = true
 schema_version = 2

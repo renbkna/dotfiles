@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Builds the Papirus-Dark-Noctalia icon theme: Papirus-Dark with its folders in the Papirus
-folder colour nearest Noctalia's primary colour.
+"""Builds the icon theme qt6ct.conf names: Papirus-Dark with its folders in the Papirus folder
+colour nearest Noctalia's primary colour.
 
 Noctalia's `papirus_folders` user template writes the primary colour to PRIMARY_FILE and runs
 this script after every palette change; Hyprland also runs it at start so folder icons a Papirus
-update adds or renames are picked up. The theme holds only symlinks into the system Papirus
-install. Papirus's papirus-folders tool was rejected because it either rewrites package-owned
-files (root) or copies the whole theme into $HOME.
+update adds or renames are picked up. Apart from its index the theme holds only symlinks into the
+system Papirus install. Papirus's papirus-folders tool was rejected because it either rewrites
+package-owned files (root) or copies the whole theme into $HOME.
 """
 
 import hashlib
@@ -18,16 +18,20 @@ import sys
 import tempfile
 from pathlib import Path
 
-NAME = "Papirus-Dark-Noctalia"
+CONFIG_HOME = Path(os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config")
+QT6CT_CONF = CONFIG_HOME / "qt6ct/qt6ct.conf"
 PAPIRUS = Path("/usr/share/icons/Papirus")
 INDEX = Path("/usr/share/icons/Papirus-Dark/index.theme")
 STATE_HOME = Path(os.environ.get("XDG_STATE_HOME") or Path.home() / ".local/state")
 PRIMARY_FILE = STATE_HOME / "papirus-noctalia-folders/primary"
-DEST = Path(os.environ.get("XDG_DATA_HOME") or Path.home() / ".local/share") / "icons" / NAME
+ICONS_DIR = (
+    Path(os.environ.get("XDG_DATA_HOME") or Path.home() / ".local/share") / "icons"
+)
 # Black and white encode contrast and yaru is a vendor shade of grey, so a neutral palette maps
 # to grey in both light and dark mode.
 EXCLUDED_COLOURS = {"black", "white", "yaru"}
-# Lightness only breaks ties between candidates of the same hue and chroma.
+# Distance is hue and chroma first; this small lightness term separates candidates that are close
+# in hue and chroma, such as the neutral greys.
 LIGHTNESS_WEIGHT = 0.1
 
 
@@ -54,10 +58,14 @@ def folder_colours() -> dict[str, str]:
     # A colour, unlike a folder category, has its own variant of every category icon.
     for documents in places.glob("folder-*-documents.svg"):
         colour = documents.name.removeprefix("folder-").removesuffix("-documents.svg")
-        fills = re.findall(r"fill:(#[0-9a-fA-F]{6})", (places / f"folder-{colour}.svg").read_text())
+        fills = re.findall(
+            r"fill:(#[0-9a-fA-F]{6})", (places / f"folder-{colour}.svg").read_text()
+        )
         # Papirus draws a folder as back, paper and front, in that order.
         if len(fills) < 3:
-            sys.exit(f"papirus-noctalia-folders: unexpected layout in folder-{colour}.svg")
+            sys.exit(
+                f"papirus-noctalia-folders: unexpected layout in folder-{colour}.svg"
+            )
         colours[colour] = fills[2].lower()
     return colours
 
@@ -83,9 +91,18 @@ def index_sections() -> dict[str, str]:
     return sections
 
 
-def build(colour: str, tmp: Path) -> None:
+def theme_name() -> str:
+    """The icon theme name qt6ct.conf sets, which GTK and KDE are pointed at too."""
+    names = re.findall(r"^icon_theme=(.+)$", QT6CT_CONF.read_text(), flags=re.MULTILINE)
+    if len(names) != 1:
+        sys.exit(f"papirus-noctalia-folders: {QT6CT_CONF} needs one icon_theme line")
+    return names[0].strip()
+
+
+def build(name: str, colour: str, tmp: Path) -> None:
     sections = index_sections()
     dirs, scaled = [], []
+    unmatched = []
     for places in sorted(PAPIRUS.glob("*/places")):
         section = f"{places.parent.name}/places"
         # Icon lookups search only the directories Papirus-Dark declares.
@@ -96,21 +113,30 @@ def build(colour: str, tmp: Path) -> None:
             if not icon.is_symlink():
                 continue
             target = icon.resolve()
-            match = re.fullmatch(r"(folder|user)-blue(.*)", target.name)
+            # Exactly the blue variant: folder-blue.svg or folder-blue-<category>.svg.
+            match = re.fullmatch(r"(folder|user)-blue((?:-[^.]+)?\.svg)", target.name)
             if not match:
                 continue
             recoloured = target.with_name(f"{match[1]}-{colour}{match[2]}")
             if not recoloured.exists():
+                unmatched.append(f"{section}/{icon.name}")
                 continue
             (tmp / section).mkdir(parents=True, exist_ok=True)
             (tmp / section / icon.name).symlink_to(recoloured)
             made = True
         if made:
             (scaled if section.split("/")[0].endswith("@2x") else dirs).append(section)
+    # Icons Papirus has no variant for stay blue through the inherited Papirus-Dark.
+    if unmatched:
+        print(
+            f"papirus-noctalia-folders: no {colour} variant for {len(unmatched)} icons, "
+            f"e.g. {unmatched[0]}",
+            file=sys.stderr,
+        )
 
     index = [
         "[Icon Theme]",
-        f"Name={NAME}",
+        f"Name={name}",
         f"Comment=Papirus-Dark with {colour} folders, the Papirus colour nearest Noctalia's primary",
         "Inherits=Papirus-Dark,hicolor",
         f"Directories={','.join(dirs)}",
@@ -125,33 +151,41 @@ def main() -> None:
     try:
         primary = PRIMARY_FILE.read_text().strip()
     except FileNotFoundError:
-        sys.exit(f"papirus-noctalia-folders: {PRIMARY_FILE} is missing; run `noctalia msg templates-apply`")
+        sys.exit(
+            f"papirus-noctalia-folders: {PRIMARY_FILE} is missing; run `noctalia msg templates-apply`"
+        )
     if not re.fullmatch(r"#[0-9a-fA-F]{6}", primary):
-        sys.exit(f"papirus-noctalia-folders: {PRIMARY_FILE} holds {primary!r}, not #rrggbb")
+        sys.exit(
+            f"papirus-noctalia-folders: {PRIMARY_FILE} holds {primary!r}, not #rrggbb"
+        )
 
+    name = theme_name()
+    dest = ICONS_DIR / name
     colour = nearest_colour(primary, folder_colours())
-    # Rebuild only when the colour, Papirus's folder directories or this script changed.
+    # Rebuild only when the name, the colour, Papirus's folder directories or this script changed.
     inputs = [*PAPIRUS.glob("*/places"), INDEX, Path(__file__)]
     stamp = hashlib.sha256(
-        "\n".join([colour, *(f"{p} {p.stat().st_mtime_ns}" for p in inputs)]).encode()
+        "\n".join(
+            [name, colour, *(f"{p} {p.stat().st_mtime_ns}" for p in inputs)]
+        ).encode()
     ).hexdigest()
-    if (DEST / ".stamp").is_file() and (DEST / ".stamp").read_text() == stamp:
+    if (dest / ".stamp").is_file() and (dest / ".stamp").read_text() == stamp:
         return
 
-    DEST.parent.mkdir(parents=True, exist_ok=True)
-    tmp = Path(tempfile.mkdtemp(prefix=f"{NAME}.", dir=DEST.parent))
+    ICONS_DIR.mkdir(parents=True, exist_ok=True)
+    tmp = Path(tempfile.mkdtemp(prefix=f"{name}.", dir=ICONS_DIR))
     try:
-        build(colour, tmp)
+        build(name, colour, tmp)
         (tmp / ".stamp").write_text(stamp)
         tmp.chmod(0o755)
         # Swap the finished theme into place so icon lookups never see a half-built tree.
-        if DEST.exists():
-            old = Path(tempfile.mkdtemp(prefix=f"{NAME}.old.", dir=DEST.parent))
-            DEST.rename(old / "theme")
-            tmp.rename(DEST)
+        if dest.exists():
+            old = Path(tempfile.mkdtemp(prefix=f"{name}.old.", dir=ICONS_DIR))
+            dest.rename(old / "theme")
+            tmp.rename(dest)
             shutil.rmtree(old)
         else:
-            tmp.rename(DEST)
+            tmp.rename(dest)
     except BaseException:
         shutil.rmtree(tmp, ignore_errors=True)
         raise

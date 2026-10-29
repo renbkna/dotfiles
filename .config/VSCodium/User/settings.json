@@ -77,13 +77,6 @@
 	"editor.wordWrap": "wordWrapColumn",
 	"editor.wordWrapColumn": 120,
 	"editor.wrappingStrategy": "advanced",
-	"indentRainbow.excludedLanguages": [
-		"svelte",
-		"rust",
-		"typescript",
-		"javascript",
-		"plaintext"
-	],
 	// ===== EDITOR BEHAVIOR & FORMATTING =====
 	"comments.openView": "never",
 	"diffEditor.codeLens": true,
@@ -91,10 +84,6 @@
 	"diffEditor.renderIndicators": true,
 	"diffEditor.renderSideBySide": true,
 	"editor.acceptSuggestionOnEnter": "smart",
-	"editor.codeActionsOnSave": {
-		"source.fixAll.oxc": "explicit",
-		"source.organizeImports.biome": "explicit"
-	},
 	"editor.detectIndentation": true,
 	"editor.formatOnPaste": true,
 	"editor.formatOnSave": true,
@@ -170,9 +159,6 @@
 		"svelte.config.*": "vite.config.*, tailwind.config.*, postcss.config.*, tsconfig.*, .prettierrc*",
 		"+page.svelte": "+page.server.ts, +page.ts, +page.server.js, +page.js",
 		"+layout.svelte": "+layout.server.ts, +layout.ts, +layout.server.js, +layout.js"
-	},
-	"files.associations": {
-		"*.css": "tailwindcss"
 	},
 	"files.autoSave": "afterDelay",
 	"files.autoSaveDelay": 2000,
@@ -266,44 +252,8 @@
 	"scm.diffDecorations": "all",
 	"scm.diffDecorationsGutterVisibility": "hover",
 	// ===== LANGUAGE-SPECIFIC OVERRIDES =====
-	"[csharp]": {
-		"editor.defaultFormatter": "ms-dotnettools.csharpier"
-	},
-	"[css]": {
-		"editor.defaultFormatter": "biomejs.biome"
-	},
-	"[tailwindcss]": {
-		"editor.defaultFormatter": "biomejs.biome"
-	},
 	"[html]": {
 		"editor.defaultFormatter": "vscode.html-language-features"
-	},
-	"[java]": {
-		"editor.tabSize": 4
-	},
-	"[javascript]": {
-		"editor.defaultFormatter": "biomejs.biome"
-	},
-	"[javascriptreact]": {
-		"editor.defaultFormatter": "biomejs.biome"
-	},
-	"[json]": {
-		"editor.defaultFormatter": "biomejs.biome"
-	},
-	"[jsonc]": {
-		"editor.defaultFormatter": "biomejs.biome"
-	},
-	"[markdown]": {
-		"editor.defaultFormatter": "DavidAnson.vscode-markdownlint"
-	},
-	"[svelte]": {
-		"editor.defaultFormatter": "svelte.svelte-vscode"
-	},
-	"[typescript]": {
-		"editor.defaultFormatter": "biomejs.biome"
-	},
-	"[typescriptreact]": {
-		"editor.defaultFormatter": "biomejs.biome"
 	},
 	"[python]": {
 		"editor.defaultFormatter": "charliermarsh.ruff",
@@ -312,14 +262,8 @@
 			"source.organizeImports.ruff": "explicit"
 		}
 	},
-	"[rust]": {
-		"editor.defaultFormatter": "rust-lang.rust-analyzer"
-	},
 	"[toml]": {
 		"editor.defaultFormatter": "tamasfe.even-better-toml"
-	},
-	"[yaml]": {
-		"editor.defaultFormatter": "redhat.vscode-yaml"
 	},
 	// ===== LANGUAGE & TOOL SETTINGS =====
 	"java.completion.enabled": false,
@@ -342,20 +286,9 @@
 		"https://biomejs.dev": true
 	},
 	"npm.packageManager": "bun",
-	"rust-analyzer.files.excludeDirs": [
-		"node_modules",
-		"target",
-		".git",
-		"assets",
-		"dist",
-		".venv",
-		"__pycache__"
-	],
-	"svelte.enable-ts-plugin": true,
 	"js/ts.experimental.useTsgo": true,
 	"js/ts.suggest.paths": false,
 	"js/ts.updateImportsOnFileMove.enabled": "always",
-	"oxc.lint.run": "onType",
 	"ruff.nativeServer": "on",
 	"ruff.lint.enable": true,
 	"ruff.organizeImports": true,
@@ -375,13 +308,6 @@
 	},
 	"extensions.closeExtensionDetailsOnViewChange": true,
 	"extensions.ignoreRecommendations": false,
-	"markdown-preview-enhanced.codeBlockTheme": "github-dark.css",
-	"markdown-preview-enhanced.enablePreviewZenMode": true,
-	"markdown-preview-enhanced.previewTheme": "atom-dark.css",
-	"markdown-preview-enhanced.revealjsTheme": "black.css",
-	"sonarlint.automaticAnalysis": true,
-	"sonarlint.focusOnNewCode": false,
-	"sonarlint.ideLabsEnabled": true,
 	// ===== PERFORMANCE, SECURITY & TELEMETRY =====
 	"editor.accessibilitySupport": "off",
 	"editor.largeFileOptimizations": true,
@@ -391,18 +317,16 @@
 	"telemetry.editStats.enabled": false,
 	"telemetry.feedback.enabled": false,
 	"chat.viewSessions.orientation": "stacked",
-	"vscord.status.details.text.editing": "{problems}",
-	"vscord.status.details.text.viewing": "{problems}",
 	"terminal.integrated.fontSize": 15,
 	"workbench.editor.empty.hint": "hidden",
 	"java.configuration.runtimes": [
 		{
 			"name": "JavaSE-25",
-			"path": "/usr/lib/jvm/java-25-graalvm-ce",
+			"path": "/usr/lib/jvm/java-25-openjdk",
 			"default": true
 		}
 	],
-	"java.jdt.ls.java.home": "/usr/lib/jvm/java-25-graalvm-ce",
+	"java.jdt.ls.java.home": "/usr/lib/jvm/java-25-openjdk",
 	"chat.tips.enabled": false,
 	"github.copilot.enable": {
 		"*": false,

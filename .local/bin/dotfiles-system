@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # Applies the system configuration this setup needs, idempotently:
-#   - greetd runs noctalia-greeter (its own setup script prepares the greeter user, PAM and paths)
-#   - Plymouth boot splash with the bgrt theme (mkinitcpio hook, `splash` on the limine cmdline)
+#   - greetd runs noctalia-greeter (this creates the greeter user; noctalia-greeter's setup script
+#     prepares PAM, its paths and the appearance sync)
+#   - Plymouth boot splash with the bgrt theme (mkinitcpio hook, `splash` on the limine cmdline),
+#     with the boot images rebuilt whenever that configuration changes
 #   - transparent hugepages in madvise mode
 #
 #   sudo dotfiles-system     apply what is missing
@@ -19,7 +21,6 @@ if ! $check && ((EUID != 0)); then
 	exit 1
 fi
 pending=0
-rebuild_initramfs=false
 
 # ensure <description> <predicate> <action>: reports the fact; outside check mode runs the action
 # when the predicate fails.
@@ -52,31 +53,32 @@ hook_apply() {
 	else
 		sed -Ei '/^HOOKS=\(/ s/\<udev\>/udev plymouth/' /etc/mkinitcpio.conf
 	fi
-	rebuild_initramfs=true
 }
 ensure "mkinitcpio runs the plymouth hook" hook_set hook_apply
 
 splash_set() { grep -Eq '^KERNEL_CMDLINE\[default\].*\<splash\>' /etc/default/limine; }
 splash_apply() {
 	sed -Ei '0,/^KERNEL_CMDLINE\[default\]/ { /^KERNEL_CMDLINE\[default\]/ s/"$/ splash"/ }' /etc/default/limine
-	rebuild_initramfs=true
 }
 ensure "limine boots with splash" splash_set splash_apply
 
 theme_set() { [[ $(plymouth-set-default-theme) == bgrt ]]; }
-theme_apply() {
-	plymouth-set-default-theme bgrt
-	rebuild_initramfs=true
-}
+theme_apply() { plymouth-set-default-theme bgrt; }
 ensure "plymouth theme: bgrt" theme_set theme_apply
 
-if $rebuild_initramfs; then
-	echo "apply   rebuild initramfs and boot entries"
+# The boot images only pick up the edits above when rebuilt. The stamp records the configuration
+# they were last built from, so a failed or interrupted rebuild is retried on the next run.
+boot_stamp=/var/lib/dotfiles-system/boot-config.sha256
+boot_config() { sha256sum /etc/mkinitcpio.conf /etc/default/limine /etc/plymouth/plymouthd.conf; }
+boot_built() { [[ -f $boot_stamp && $(<"$boot_stamp") == "$(boot_config)" ]]; }
+boot_build() {
 	limine-mkinitcpio
-fi
+	boot_config | install -Dm644 /dev/stdin "$boot_stamp"
+}
+ensure "boot images built from the current configuration" boot_built boot_build
 
-# noctalia-greeter owns its greetd integration (greeter user, PAM, paths, appearance sync); this
-# runs its setup once and points greetd at it.
+# noctalia-greeter owns PAM, its paths and the appearance sync; this creates its user, runs its
+# setup once and points greetd at it. Its setup exits non-zero on failure, which stops this run.
 greeter_lib=/usr/share/noctalia-greeter/greetd_setup_lib.sh
 if [[ ! -f $greeter_lib ]]; then
 	echo "dotfiles-system: noctalia-greeter is not installed; run dotfiles-packages first" >&2
@@ -88,7 +90,8 @@ greeter_user="$(resolve_greeter_user)"
 
 greeter_set() { id -u "$greeter_user" >/dev/null 2>&1 && [[ -d /var/lib/noctalia-greeter ]]; }
 greeter_apply() {
-	useradd -r -s /usr/bin/nologin -d /var/lib/noctalia-greeter "$greeter_user" 2>/dev/null || true
+	id -u "$greeter_user" >/dev/null 2>&1 ||
+		useradd -r -s /usr/bin/nologin -d /var/lib/noctalia-greeter "$greeter_user"
 	/usr/share/noctalia-greeter/setup_greeter_system.sh
 }
 ensure "noctalia-greeter system setup" greeter_set greeter_apply

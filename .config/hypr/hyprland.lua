@@ -52,13 +52,11 @@ hl.config({
 	dwindle = {
 		preserve_split = true,
 	},
-	master = {
-		mfact = 0.5,
-	},
 })
 
--- Material 3 motion: entrances decelerate and settle, exits accelerate away in half the time,
--- everything else uses the standard curve. Speed is in units of 100 ms.
+-- Material 3 motion: entrances (windows, the special workspace sliding in) decelerate and
+-- settle, exits accelerate away faster, everything else uses the standard curve. Speed is in
+-- units of 100 ms.
 hl.curve("emphasizedDecel", { type = "bezier", points = { {0.05, 0.7}, {0.1, 1} } })
 hl.curve("emphasizedAccel", { type = "bezier", points = { {0.3, 0}, {0.8, 0.15} } })
 hl.curve("standard", { type = "bezier", points = { {0.2, 0}, {0, 1} } })
@@ -72,15 +70,7 @@ hl.animation({ leaf = "fade", enabled = true, speed = 3, bezier = "standard" })
 hl.animation({ leaf = "fadeOut", enabled = true, speed = 2, bezier = "emphasizedAccel" })
 hl.animation({ leaf = "border", enabled = true, speed = 3, bezier = "standard" })
 
-hl.window_rule({ match = { class = "^(org\\.wezfurlong\\.wezterm)$" }, tile = true })
 hl.window_rule({ match = { class = "^(org\\.gnome\\.)" }, rounding = 12 })
-hl.window_rule({ match = { class = "^(gnome-control-center)$" }, tile = true })
-hl.window_rule({ match = { class = "^(pavucontrol)$" }, tile = true })
-hl.window_rule({ match = { class = "^(nm-connection-editor)$" }, tile = true })
-hl.window_rule({ match = { class = "^(org\\.gnome\\.Calculator)$" }, float = true })
-hl.window_rule({ match = { class = "^(gnome-calculator)$" }, float = true })
-hl.window_rule({ match = { class = "^(galculator)$" }, float = true })
-hl.window_rule({ match = { class = "^(blueman-manager)$" }, float = true })
 hl.window_rule({ match = { class = "^(org\\.gnome\\.Nautilus)$" }, float = true })
 hl.window_rule({ match = { class = "^(xdg-desktop-portal)$" }, float = true })
 hl.window_rule({
@@ -92,7 +82,6 @@ hl.window_rule({
 	match = { class = "^(firefox)$", title = "^(Picture-in-Picture)$" },
 	float = true,
 })
-hl.window_rule({ match = { class = "^(zoom)$" }, float = true })
 
 require("shell.outputs")
 require("shell.layout")

@@ -148,7 +148,6 @@ function v --description "Download media without repeats"
                 --download-archive "$state_dir/gallery.sqlite3" \
                 -D "$outdir" \
                 -o archive-event=file,skip \
-                -o extractor.tiktok.user.include=reposts \
                 $cookie_args \
                 -- "$url"
             set code $status

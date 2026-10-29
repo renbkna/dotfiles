@@ -22,17 +22,18 @@ use the [Tyrian Night](https://github.com/renbkna/tyrian-night) theme.
 - **Colour:** Noctalia generates an `m3-monochrome` palette from the wallpaper and writes it
   to GTK, Qt (KColorScheme), Hyprland borders and Discord through its templates. A user
   template gives Papirus folders the Papirus colour nearest the palette's primary, so a
-  neutral palette keeps them grey; GTK, Qt and KDE all name the resulting
-  `Papirus-Dark-Noctalia` theme, which `.config/qt6ct/qt6ct.conf` defines. Coding tools
-  (Ghostty, Zed, VS Code, fish, the Starship prompt and the fastfetch greeting) keep Tyrian
-  Night on purpose.
-- **Glass:** one blur, defined in Hyprland. Shell surfaces (bar capsules, panels, dock,
-  notifications, desktop cards) are tinted to 0.8 and blurred by the layer rules in
-  `.config/hypr/shell/layout.lua`. App content stays opaque; Qt menus and toolbars are 80%.
-- **Motion:** Material 3 curves in `.config/hypr/hyprland.lua`: entrances decelerate over
-  400 ms, exits accelerate away in 200 ms, everything else uses the standard curve.
+  neutral palette keeps them grey. `.config/qt6ct/qt6ct.conf` names that theme; the script
+  builds it under that name and the bootstrap points GTK and KDE at it. Coding tools (Ghostty,
+  Zed, VS Code, fish, the Starship prompt and the fastfetch greeting) keep Tyrian Night on
+  purpose.
+- **Glass:** one blur, defined in Hyprland. Bar capsules and desktop cards are tinted to 0.8,
+  panels use Noctalia's soft transparency, and the dock and notifications keep Noctalia's
+  defaults; the layer rules in `.config/hypr/shell/layout.lua` blur all of them. Ghostty is
+  translucent (0.82) over the same blur; other app content stays opaque, and Qt menus and
+  toolbars are 80%.
+- **Motion:** Material 3 curves; `.config/hypr/hyprland.lua` sets which animation uses which.
 - **Desktop:** photo and caption top right, note bottom right, clock, date and media player
-  bottom left, laid out for a 2560x1440 monitor with 96 px margins and 32 px gaps.
+  bottom left, laid out for a 2560x1440 monitor in `.config/noctalia/config.toml`.
 
 ## Install on a new machine
 
@@ -48,12 +49,13 @@ use the [Tyrian Night](https://github.com/renbkna/tyrian-night) theme.
    dots config core.hooksPath ~/.config/dotfiles/hooks
    ```
 
-3. Run `~/.local/bin/dotfiles-bootstrap`. It installs `packages/common.txt`, applies
-   `dotfiles-system` with sudo, enables the user services, clones tyrian-night to
-   `~/Projects/tyrian-night` and links its Ghostty themes, its fish greeting, the fish startup
-   file for the variant `config.ghostty` names and the Zed theme, installs the VSCodium
-   extensions (building Tyrian Night from the checkout), and sets the icon theme for GTK and
-   KDE. On the ASUS TUF A15 also run `dotfiles-packages install asus-tuf-a15`.
+3. Run `~/.local/bin/dotfiles-bootstrap`. It installs this machine's package lists
+   (`packages/common.txt`, plus any list whose `# machine:` header names this board), applies
+   `dotfiles-system` with sudo, enables the user services, installs the Myna 2.0 font from its
+   pinned release, clones tyrian-night to `~/Projects/tyrian-night` and links its Ghostty
+   themes, its fish greeting, the fish startup file for the variant `config.ghostty` names and
+   the Zed theme, installs the VSCodium extensions (building Tyrian Night from the checkout),
+   and sets the icon theme for GTK and KDE.
 4. Reboot, log in through the greeter (Hyprland shows a missing `noctalia.lua` until the next
    step), and run `dotfiles-bootstrap` again. Inside the session it applies Noctalia's
    templates, which write `~/.config/hypr/noctalia.lua` and build the icon theme.

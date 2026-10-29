@@ -2,8 +2,10 @@
 """Refuses commits that would publish private data from this public dotfiles repo.
 
 Private data is whatever the untracked local override files hold (every string value in
-~/.config/noctalia/local.toml and every quoted string in ~/.config/hypr/shell/local.lua),
-plus secrets and coordinates by pattern. Private files themselves may never be staged.
+~/.config/noctalia/local.toml and every double-quoted string in ~/.config/hypr/shell/local.lua),
+plus secrets and coordinates by pattern. A commit that includes a private file is refused too.
+`git add` itself is not guarded, so staged-then-unstaged content stays in the local object store
+until `git gc` prunes it.
 """
 import pathlib
 import re
