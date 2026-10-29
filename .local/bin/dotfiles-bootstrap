@@ -1,8 +1,9 @@
 #!/usr/bin/env fish
-# Sets up this desktop on a fresh CachyOS install after `dots checkout`, and brings a running one
-# back in line; every step is idempotent. Run it from any terminal first: it installs packages and
-# applies system configuration with sudo. Then log into Hyprland through the greeter and run it
-# again from a terminal there, which applies the steps that need the running shell.
+# Sets up this desktop after `dots checkout` and brings a running one back in line; every step
+# is idempotent. It installs this machine's packages, applies dotfiles-system, enables the user
+# services, installs Myna, links the tyrian-night checkout's terminal and Zed themes, installs
+# the VSCodium extensions and sets the icon theme. Run it from any terminal, then again inside
+# Hyprland, where it also applies Noctalia's templates.
 
 set -l dots ~/.config/dotfiles
 set -l tyrian ~/Projects/tyrian-night
