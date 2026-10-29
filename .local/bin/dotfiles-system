@@ -1,0 +1,123 @@
+#!/usr/bin/env bash
+# Applies the system configuration this setup needs, idempotently:
+#   - greetd runs noctalia-greeter (its own setup script prepares the greeter user, PAM and paths)
+#   - Plymouth boot splash with the bgrt theme (mkinitcpio hook, `splash` on the limine cmdline)
+#   - transparent hugepages in madvise mode
+#   - the desktop user may raise priority to nice -5 (gamemode)
+#
+#   sudo dotfiles-system     apply what is missing
+#   dotfiles-system --check  report what would change, without root; exits 1 if anything would
+#
+# Revert: delete /etc/tmpfiles.d/thp.conf and /etc/security/limits.d/90-dotfiles-nice.conf, remove
+# `plymouth` from HOOKS in /etc/mkinitcpio.conf and `splash` from KERNEL_CMDLINE in
+# /etc/default/limine, run limine-mkinitcpio, and enable another display manager.
+set -euo pipefail
+
+check=false
+[[ ${1:-} == --check ]] && check=true
+if ! $check && ((EUID != 0)); then
+	echo "dotfiles-system: run with sudo, or pass --check" >&2
+	exit 1
+fi
+user="${SUDO_USER:-$USER}"
+pending=0
+rebuild_initramfs=false
+
+# ensure <description> <predicate> <action>: reports the fact; outside check mode runs the action
+# when the predicate fails.
+ensure() {
+	if "$2"; then
+		echo "ok      $1"
+	elif $check; then
+		echo "change  $1"
+		pending=1
+	else
+		echo "apply   $1"
+		"$3"
+	fi
+}
+
+thp_path=/etc/tmpfiles.d/thp.conf
+thp='w /sys/kernel/mm/transparent_hugepage/enabled - - - - madvise'
+thp_set() { [[ -f $thp_path && $(<"$thp_path") == "$thp" ]]; }
+thp_apply() {
+	install -Dm644 /dev/stdin "$thp_path" <<<"$thp"
+	systemd-tmpfiles --create "$thp_path"
+}
+ensure "transparent hugepages: madvise" thp_set thp_apply
+
+nice_path=/etc/security/limits.d/90-dotfiles-nice.conf
+nice="$user hard nice -5
+$user soft nice -5"
+nice_set() { [[ -f $nice_path && $(<"$nice_path") == "$nice" ]]; }
+nice_apply() { install -Dm644 /dev/stdin "$nice_path" <<<"$nice"; }
+ensure "$user may use nice -5 (takes effect at next login)" nice_set nice_apply
+
+# Plymouth must start before the root filesystem is mounted, right after systemd or udev.
+hook_set() { grep -Eq '^HOOKS=\(.*\<plymouth\>' /etc/mkinitcpio.conf; }
+hook_apply() {
+	if grep -Eq '^HOOKS=\(.*\<systemd\>' /etc/mkinitcpio.conf; then
+		sed -Ei '/^HOOKS=\(/ s/\<systemd\>/systemd plymouth/' /etc/mkinitcpio.conf
+	else
+		sed -Ei '/^HOOKS=\(/ s/\<udev\>/udev plymouth/' /etc/mkinitcpio.conf
+	fi
+	rebuild_initramfs=true
+}
+ensure "mkinitcpio runs the plymouth hook" hook_set hook_apply
+
+splash_set() { grep -Eq '^KERNEL_CMDLINE\[default\].*\<splash\>' /etc/default/limine; }
+splash_apply() {
+	sed -Ei '0,/^KERNEL_CMDLINE\[default\]/ { /^KERNEL_CMDLINE\[default\]/ s/"$/ splash"/ }' /etc/default/limine
+	rebuild_initramfs=true
+}
+ensure "limine boots with splash" splash_set splash_apply
+
+theme_set() { [[ $(plymouth-set-default-theme) == bgrt ]]; }
+theme_apply() {
+	plymouth-set-default-theme bgrt
+	rebuild_initramfs=true
+}
+ensure "plymouth theme: bgrt" theme_set theme_apply
+
+if $rebuild_initramfs; then
+	echo "apply   rebuild initramfs and boot entries"
+	limine-mkinitcpio
+fi
+
+# noctalia-greeter owns its greetd integration (greeter user, PAM, paths, appearance sync); this
+# runs its setup once and points greetd at it.
+greeter_lib=/usr/share/noctalia-greeter/greetd_setup_lib.sh
+if [[ ! -f $greeter_lib ]]; then
+	echo "dotfiles-system: noctalia-greeter is not installed; run dotfiles-packages first" >&2
+	exit 1
+fi
+# shellcheck source=/usr/share/noctalia-greeter/greetd_setup_lib.sh
+source "$greeter_lib"
+greeter_user="$(resolve_greeter_user)"
+
+greeter_set() { id -u "$greeter_user" >/dev/null 2>&1 && [[ -d /var/lib/noctalia-greeter ]]; }
+greeter_apply() {
+	useradd -r -s /usr/bin/nologin -d /var/lib/noctalia-greeter "$greeter_user" 2>/dev/null || true
+	/usr/share/noctalia-greeter/setup_greeter_system.sh
+}
+ensure "noctalia-greeter system setup" greeter_set greeter_apply
+
+greetd_path=/etc/greetd/config.toml
+greetd_config="[terminal]
+vt = 1
+
+[default_session]
+command = \"$(find_session_bin)\"
+user = \"$greeter_user\""
+greetd_set() { [[ -f $greetd_path && $(<"$greetd_path") == "$greetd_config" ]]; }
+greetd_apply() { install -Dm644 /dev/stdin "$greetd_path" <<<"$greetd_config"; }
+ensure "greetd starts noctalia-greeter" greetd_set greetd_apply
+
+dm_set() { [[ $(systemctl is-enabled greetd.service 2>/dev/null) == enabled ]]; }
+# --force replaces another display manager's display-manager.service alias.
+dm_apply() { systemctl enable --force greetd.service; }
+ensure "greetd is the display manager" dm_set dm_apply
+
+if $check && ((pending)); then
+	exit 1
+fi

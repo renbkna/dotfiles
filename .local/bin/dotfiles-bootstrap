@@ -1,8 +1,19 @@
 #!/usr/bin/env fish
-# Wires a fresh dotfiles checkout to what lives outside it. Run once from a terminal in the
-# first Hyprland session (Noctalia must be running); rerunning it is safe.
+# Sets up this desktop on a fresh CachyOS install after `dots checkout`, and brings a running one
+# back in line; every step is idempotent. Run it from any terminal first: it installs packages and
+# applies system configuration with sudo. Then log into Hyprland through the greeter and run it
+# again from a terminal there, which applies the steps that need the running shell.
 
+set -l dots ~/.config/dotfiles
 set -l tyrian ~/Projects/tyrian-night
+
+# Packages, system configuration and user services
+~/.local/bin/dotfiles-packages install common; or exit 1
+if not ~/.local/bin/dotfiles-system --check >/dev/null
+    sudo ~/.local/bin/dotfiles-system; or exit 1
+end
+systemctl --user daemon-reload; or exit 1
+systemctl --user enable noctalia.service monthly-trash-clean.timer gamemoded.service; or exit 1
 
 if not test -d $tyrian/.git
     git clone https://github.com/renbkna/tyrian-night.git $tyrian; or exit 1
@@ -32,6 +43,23 @@ end
 link_as $tyrian/terminal/fish/conf.d/$variant.fish ~/.config/fish/conf.d/tyrian-night.fish; or exit 1
 link_as $tyrian/terminal/fish/functions/fish_greeting.fish ~/.config/fish/functions/fish_greeting.fish; or exit 1
 
+# Zed installs the listed registry extensions itself (auto_install_extensions); Tyrian Night is a
+# dev extension from the checkout.
+link_as $tyrian/apps/zed ~/.local/share/zed/extensions/installed/tyrian-night-theme; or exit 1
+
+# VSCodium: Open VSX extensions from the list, Tyrian Night built from the checkout whenever the
+# installed version differs from it.
+set -l installed (codium --list-extensions --show-versions)
+for extension in (dotfiles_list $dots/vscodium-extensions.txt)
+    string match -q "$extension@*" $installed; or codium --install-extension $extension; or exit 1
+end
+set -l tyrian_version (jq -r .version $tyrian/apps/vscode/package.json)
+if not contains renbkna.tyrian-night@$tyrian_version $installed
+    bun install --cwd $tyrian --frozen-lockfile; or exit 1
+    bun run --cwd $tyrian package:vscode; or exit 1
+    codium --install-extension $tyrian/dist/tyrian-night.vsix --force; or exit 1
+end
+
 # qt6ct.conf names the icon theme. GTK reads it from dconf and KDE apps from kdeglobals, which
 # the repository cannot carry.
 set -l icons (string match -rg '^icon_theme=(.+)$' <~/.config/qt6ct/qt6ct.conf)
@@ -42,6 +70,17 @@ end
 gsettings set org.gnome.desktop.interface icon-theme $icons; or exit 1
 kwriteconfig6 --file kdeglobals --group Icons --key Theme $icons; or exit 1
 
+# The rest needs the running Hyprland session.
+if not set -q HYPRLAND_INSTANCE_SIGNATURE
+    echo "dotfiles-bootstrap: log into Hyprland and rerun this to finish"
+    exit 0
+end
+systemctl --user start noctalia.service; or exit 1
+# Noctalia answers IPC once its shell is up; templates-apply below fails visibly if it never does.
+for attempt in (seq 20)
+    noctalia msg theme-mode-get >/dev/null 2>&1; and break
+    sleep 0.5
+end
 # Writes ~/.config/hypr/noctalia.lua, which hyprland.lua requires for border colours, and the
 # palette colour whose hook builds the icon theme (.local/bin/papirus-noctalia-folders).
 noctalia msg templates-apply; or exit 1

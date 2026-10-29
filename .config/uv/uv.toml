@@ -1,0 +1,3 @@
+# ~/.cache is its own btrfs subvolume, so hardlinks into projects fail (EXDEV);
+# reflink clones work across subvolumes and cost no extra space.
+link-mode = "clone"

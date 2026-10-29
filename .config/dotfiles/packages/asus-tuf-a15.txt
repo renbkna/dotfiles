@@ -1,0 +1,17 @@
+# ASUS TUF Gaming A15 FA507RR: Ryzen 7 6800H with Radeon 680M plus an RTX 3070 Mobile.
+# Install only on this laptop (`dotfiles-packages install asus-tuf-a15`); elsewhere CachyOS's
+# chwd picks the drivers.
+
+# CPU microcode and laptop audio firmware
+amd-ucode sof-firmware
+
+# Radeon 680M (display output)
+vulkan-radeon lib32-vulkan-radeon
+
+# RTX 3070 Mobile, used through PRIME offload
+linux-cachyos-nvidia-open linux-cachyos-lts-nvidia-open nvidia-utils lib32-nvidia-utils
+nvidia-settings nvidia-prime opencl-nvidia lib32-opencl-nvidia libva-nvidia-driver egl-wayland
+cuda switcheroo-control
+
+# ASUS platform control
+asusctl rog-control-center supergfxctl

@@ -1,0 +1,7 @@
+--cookies-from-browser
+chromium
+-P
+~/Downloads/social
+--no-playlist
+-o
+"%(extractor)s/%(title).140s [%(id)s].%(ext)s"

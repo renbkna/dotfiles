@@ -1,0 +1,66 @@
+#!/usr/bin/env fish
+# Installs and audits the package lists in ~/.config/dotfiles/packages/.
+#
+#   dotfiles-packages install <list>...  install what the lists name and is missing: repository
+#                                        packages with pacman, the rest from the AUR with paru
+#   dotfiles-packages diff [<list>...]   report drift between the lists (default: all of them)
+#                                        and the explicitly installed packages; exits 1 on drift
+#
+# A list is <name>.txt in the dotfiles_list format.
+
+set -g lists_dir ~/.config/dotfiles/packages
+
+function list_packages --description 'Print the packages the named lists declare, one per line'
+    set -l packages
+    for name in $argv
+        set -a packages (dotfiles_list $lists_dir/$name.txt); or return 1
+    end
+    test (count $packages) -gt 0; and printf '%s\n' $packages | sort -u
+end
+
+function install_lists
+    set -l listed (list_packages $argv); or return 1
+    set -l missing (comm -23 (printf '%s\n' $listed | psub) (pacman -Qq | sort -u | psub))
+    if test (count $missing) -eq 0
+        echo "dotfiles-packages: everything in $argv is installed"
+        return 0
+    end
+    set -l repo (comm -12 (printf '%s\n' $missing | psub) (pacman -Slq | sort -u | psub))
+    set -l aur (comm -23 (printf '%s\n' $missing | psub) (printf '%s\n' $repo | psub))
+    # Installing from the repositories syncs and upgrades too, so the system never mixes a fresh
+    # package database with stale installed packages.
+    if test (count $repo) -gt 0
+        sudo pacman -Syu --needed $repo; or return 1
+    end
+    if test (count $aur) -gt 0
+        paru -S --needed $aur; or return 1
+    end
+end
+
+function diff_lists
+    set -l names $argv
+    if test (count $names) -eq 0
+        set names (path basename -E $lists_dir/*.txt)
+    end
+    set -l listed (list_packages $names); or return 1
+    set -l installed (pacman -Qqe | sort -u)
+    set -l unlisted (comm -13 (printf '%s\n' $listed | psub) (printf '%s\n' $installed | psub))
+    set -l missing (comm -23 (printf '%s\n' $listed | psub) (printf '%s\n' $installed | psub))
+    test (count $unlisted) -gt 0; and echo "installed but not listed: $unlisted"
+    test (count $missing) -gt 0; and echo "listed but not explicitly installed: $missing"
+    test (count $unlisted) -eq 0 -a (count $missing) -eq 0
+end
+
+switch "$argv[1]"
+    case install
+        if test (count $argv) -lt 2
+            echo "usage: dotfiles-packages install <list>..." >&2
+            exit 2
+        end
+        install_lists $argv[2..]
+    case diff
+        diff_lists $argv[2..]
+    case '*'
+        echo "usage: dotfiles-packages install <list>... | diff [<list>...]" >&2
+        exit 2
+end

@@ -1,0 +1,8 @@
+# Open VSX extensions dotfiles-bootstrap installs into VSCodium: whitespace-separated ids, `#`
+# starts a comment. Tyrian Night is built from the tyrian-night checkout instead.
+
+astral-sh.ty charliermarsh.ruff fill-labs.dependi ms-dotnettools.vscode-dotnet-runtime
+ms-python.debugpy ms-python.python ms-python.vscode-python-envs ms-toolsai.jupyter
+ms-toolsai.jupyter-keymap ms-toolsai.jupyter-renderers ms-toolsai.vscode-jupyter-cell-tags
+ms-toolsai.vscode-jupyter-slideshow redhat.java sergey-tihon.openxml-explorer
+tamasfe.even-better-toml

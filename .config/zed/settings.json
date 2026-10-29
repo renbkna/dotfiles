@@ -1,0 +1,248 @@
+// Zed settings
+//
+// For information on how to configure Zed, see the Zed
+// documentation: [https://zed.dev/docs/configuring-zed](https://zed.dev/docs/configuring-zed)
+//
+// To see all of Zed's default settings without changing your
+// custom settings, run `zed: open default settings` from the
+// command palette (cmd-shift-p / ctrl-shift-p)
+{
+  // ── Theme & fonts ─────────────────────────────────────────────
+  "cli_default_open_behavior": "existing_window",
+  "theme": {
+    "mode": "dark",
+    "light": "Tyrian Dawn",
+    "dark": "Tyrian Abyss",
+  },
+  "icon_theme": {
+    "mode": "dark",
+    "light": "Colored Zed Icons Theme Dark",
+    "dark": "Colored Zed Icons Theme Light",
+  },
+  "buffer_font_family": "Myna",
+  "buffer_font_size": 23,
+  "buffer_line_height": {
+    "custom": 1.4,
+  },
+  "buffer_font_features": {
+    "calt": true,
+    "liga": true,
+    "dlig": true,
+    "ss01": true,
+    "ss02": true,
+    "ss03": true,
+    "ss04": true,
+    "ss05": true,
+    "ss06": true,
+    "ss07": true,
+    "ss08": true,
+    "ss09": true,
+    "ss10": true,
+  },
+  "ui_font_family": "Inter Variable",
+  "text_rendering_mode": "subpixel",
+
+  // ── Editor appearance ─────────────────────────────────────────
+  "cursor_animation": {
+    "enabled": true,
+  },
+  "colorize_brackets": true,
+  "semantic_tokens": "combined",
+  "indent_guides": {
+    "enabled": true,
+    "line_width": 1,
+    "active_line_width": 1,
+    "coloring": "indent_aware",
+  },
+  "sticky_scroll": {
+    "enabled": true,
+  },
+  "gutter": {
+    "min_line_number_digits": 3,
+  },
+
+  // ── Editor assistance ─────────────────────────────────────────
+  "inlay_hints": {
+    "enabled": true,
+    "show_parameter_hints": true,
+    "show_other_hints": true,
+    "show_type_hints": true,
+    "show_background": true,
+  },
+  "diagnostics": {
+    "inline": {
+      "enabled": true,
+    },
+  },
+  "auto_signature_help": true,
+
+  // ── Panels ────────────────────────────────────────────────────
+  "project_panel": {
+    "dock": "left",
+    "entry_spacing": "comfortable",
+    "indent_size": 20,
+    "hide_gitignore": true,
+  },
+  "outline_panel": {
+    "dock": "left",
+  },
+  "git_panel": {
+    "tree_view": true,
+    "dock": "left",
+  },
+  "collaboration_panel": {
+    "dock": "left",
+  },
+
+  // ── Tabs & windows ────────────────────────────────────────────
+  "max_tabs": 12,
+  "tabs": {
+    "file_icons": true,
+    "show_diagnostics": "errors",
+    "show_close_button": "hover",
+  },
+  "title_bar": {
+    "show_branch_status_icon": true,
+    "show_onboarding_banner": false,
+  },
+  "active_pane_modifiers": {
+    "border_size": 0.1,
+  },
+
+  // ── Git ───────────────────────────────────────────────────────
+  "git": {
+    "diff_base": "default_branch",
+    "inline_blame": {
+      "location": "status_bar",
+    },
+  },
+
+  // ── Terminal ──────────────────────────────────────────────────
+  "terminal": {
+    "font_family": "Myna",
+    "font_size": 16,
+    "line_height": {
+      "custom": 1.3,
+    },
+    "cursor_shape": "bar",
+    "blinking": "terminal_controlled",
+    "minimum_contrast": 0,
+  },
+
+  // ── Editing & formatting ──────────────────────────────────────
+  "preferred_line_length": 100,
+  "format_on_save": "on",
+  "autosave": {
+    "after_delay": {
+      "milliseconds": 2000,
+    },
+  },
+
+  // ── File handling & previews ──────────────────────────────────
+  "markdown_preview": {
+    "open_markdown_files_in_preview": false,
+    "font_size": 18,
+  },
+
+  // ── AI ────────────────────────────────────────────────────────
+  "disable_ai": true,
+  "show_edit_predictions": false,
+
+  // ── Languages & tooling ───────────────────────────────────────
+  "languages": {
+    "Python": {
+      "indent_guides": {
+        "background_coloring": "indent_aware",
+      },
+      "language_servers": ["ty", "ruff"],
+    },
+    "TypeScript": {
+      "language_servers": ["tsgo", "biome"],
+      "formatter": {
+        "language_server": {
+          "name": "biome",
+        },
+      },
+      "code_actions_on_format": {
+        "source.fixAll.biome": true,
+        "source.organizeImports.biome": true,
+      },
+    },
+    "TSX": {
+      "language_servers": ["tsgo", "biome"],
+      "formatter": {
+        "language_server": {
+          "name": "biome",
+        },
+      },
+      "code_actions_on_format": {
+        "source.fixAll.biome": true,
+        "source.organizeImports.biome": true,
+      },
+    },
+    "JavaScript": {
+      "language_servers": ["tsgo", "biome"],
+      "formatter": {
+        "language_server": {
+          "name": "biome",
+        },
+      },
+      "code_actions_on_format": {
+        "source.fixAll.biome": true,
+        "source.organizeImports.biome": true,
+      },
+    },
+    "HTML": {
+      "language_servers": ["biome"],
+      "formatter": {
+        "language_server": {
+          "name": "biome",
+        },
+      },
+    },
+    "Java": {
+      "language_servers": ["jdtls"],
+    },
+  },
+  "lsp": {
+    "rust-analyzer": {
+      "initialization_options": {
+        // Run clippy instead of `cargo check` on save, so lints show inline.
+        "check": {
+          "command": "clippy",
+        },
+      },
+    },
+  },
+
+  // ── Runtime ───────────────────────────────────────────────────
+  "node": {
+    "ignore_system_version": true,
+  },
+
+  // ── Extensions ────────────────────────────────────────────────
+  // Installed on first start. Tyrian Night is a dev extension linked from the tyrian-night
+  // checkout by dotfiles-bootstrap.
+  "auto_install_extensions": {
+    "biome": true,
+    "catppuccin": true,
+    "codebook": true,
+    "colored-zed-icons-theme": true,
+    "csharp": true,
+    "discord-presence": true,
+    "gdscript": true,
+    "git-firefly": true,
+    "github-dark-default": true,
+    "html": true,
+    "java": true,
+    "just": true,
+    "log": true,
+    "material-icon-theme": true,
+    "r": true,
+    "sql": true,
+    "svelte": true,
+    "toml": true,
+    "tsgo": true,
+    "xml": true,
+  },
+}

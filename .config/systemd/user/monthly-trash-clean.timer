@@ -1,0 +1,10 @@
+[Unit]
+Description=Monthly Trash cleanup
+
+[Timer]
+OnCalendar=monthly
+Persistent=true
+Unit=monthly-trash-clean.service
+
+[Install]
+WantedBy=timers.target

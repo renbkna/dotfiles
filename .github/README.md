@@ -12,6 +12,10 @@ use the [Tyrian Night](https://github.com/renbkna/tyrian-night) theme.
 | fish + Starship + fastfetch | fish 4.9 | `.config/fish/`, `.config/fastfetch/` |
 | Qt: qt6ct-kde + Darkly | Darkly 0.5 | `.config/qt6ct/`, `.config/darklyrc` |
 | Icons: Papirus-Dark, folders follow the palette | Papirus 20260801 | `.local/bin/papirus-noctalia-folders` |
+| Packages (pacman first, AUR through paru) | | `.config/dotfiles/packages/`, `.local/bin/dotfiles-packages` |
+| System: greetd + noctalia-greeter, Plymouth, THP, nice limit | | `.local/bin/dotfiles-system` |
+| Session: Hyprland target, Noctalia service, monthly trash cleanup | | `.config/systemd/user/` |
+| Editors: Zed and VSCodium settings and extensions | | `.config/zed/`, `.config/VSCodium/User/`, `.config/dotfiles/vscodium-extensions.txt` |
 
 ## Design
 
@@ -30,28 +34,37 @@ use the [Tyrian Night](https://github.com/renbkna/tyrian-night) theme.
 - **Desktop:** photo and caption top right, note bottom right, clock, date and media player
   bottom left, laid out for a 2560x1440 monitor with 96 px margins and 32 px gaps.
 
-## Install
+## Install on a new machine
 
-The repository is a bare git repo whose work tree is `$HOME`, so files stay where the
-programs expect them and nothing is symlinked.
+1. Install CachyOS without a desktop, so no edition config sits where this one goes.
+2. Check out the dotfiles. The repository is a bare git repo whose work tree is `$HOME`, so
+   files stay where the programs expect them.
 
-```fish
-git clone --bare https://github.com/renbkna/dotfiles.git ~/.dotfiles
-function dots; git --git-dir=$HOME/.dotfiles --work-tree=$HOME $argv; end
-dots checkout            # move any conflicting files aside first if it refuses
-dots config status.showUntrackedFiles no
-dots config core.hooksPath ~/.config/dotfiles/hooks
-```
+   ```fish
+   git clone --bare https://github.com/renbkna/dotfiles.git ~/.dotfiles
+   function dots; git --git-dir=$HOME/.dotfiles --work-tree=$HOME $argv; end
+   dots checkout            # move any conflicting files aside first if it refuses
+   dots config status.showUntrackedFiles no
+   dots config core.hooksPath ~/.config/dotfiles/hooks
+   ```
 
-Then log into Hyprland, open a terminal and run `~/.local/bin/dotfiles-bootstrap`. It clones
-tyrian-night to `~/Projects/tyrian-night` and links its Ghostty themes, its fish greeting and
-the fish startup file for the variant `config.ghostty` names (which wires the matching fish
-colours, Starship prompt and fastfetch colours). It sets the icon theme for GTK (dconf) and KDE
-(`kdeglobals`), and applies Noctalia's templates, which write the `~/.config/hypr/noctalia.lua`
-that `hyprland.lua` requires for border colours and build the icon theme. Rerun it after
-changing the Ghostty theme; rerunning is always safe.
+3. Run `~/.local/bin/dotfiles-bootstrap`. It installs `packages/common.txt`, applies
+   `dotfiles-system` with sudo, enables the user services, clones tyrian-night to
+   `~/Projects/tyrian-night` and links its Ghostty themes, its fish greeting, the fish startup
+   file for the variant `config.ghostty` names and the Zed theme, installs the VSCodium
+   extensions (building Tyrian Night from the checkout), and sets the icon theme for GTK and
+   KDE. On the ASUS TUF A15 also run `dotfiles-packages install asus-tuf-a15`.
+4. Reboot, log in through the greeter (Hyprland shows a missing `noctalia.lua` until the next
+   step), and run `dotfiles-bootstrap` again. Inside the session it applies Noctalia's
+   templates, which write `~/.config/hypr/noctalia.lua` and build the icon theme.
+5. Restore what no repository holds: the local overrides below, the photo and wallpapers they
+   name, SSH keys, `gh auth login`, `~/.config/fish/fish_variables` and browser profiles.
+6. On other hardware, adjust the monitors in `.config/hypr/shell/outputs.lua` and the desktop
+   widget positions in `.config/noctalia/config.toml` (laid out for 2560x1440).
 
-Optionally, create the machine-specific files below.
+Rerun `dotfiles-bootstrap` after changing the Ghostty theme; rerunning is always safe.
+`dotfiles-packages diff` reports packages installed or removed outside the lists, and
+`dotfiles-system --check` reports system configuration that has drifted.
 
 ## Local overrides (never committed)
 
@@ -74,10 +87,3 @@ description = "•  first line"
 The pre-commit hook in `.config/dotfiles/hooks/` refuses any commit that stages a local or
 secret file, or that contains a value from the local override files, coordinates or an
 API-key pattern.
-
-## Requirements
-
-Hyprland 0.57+, Noctalia 5.4+, Ghostty, fish, Starship, fastfetch, eza, zoxide, direnv,
-qt6ct-kde, Darkly, Papirus icon theme, Python 3.9+, kwriteconfig6 (kconfig), the Bibata
-Modern Ice cursor and the Myna font.
-Keybinds launch Ghostty, Zed (`zeditor`), Helium, Nautilus and Equibop.
