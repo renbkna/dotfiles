@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+# Builds the Papirus-Dark-Grey icon theme: Papirus-Dark with every folder icon that Papirus links
+# to its blue variant redirected to the matching grey file. The theme holds only symlinks into the
+# system Papirus install, so package updates flow through; Hyprland reruns this at every start so
+# folder icons Papirus adds or renames are picked up. Papirus's papirus-folders tool was rejected
+# because it either rewrites package-owned files (root) or copies the whole theme into $HOME.
+set -euo pipefail
+
+src=/usr/share/icons/Papirus
+index=/usr/share/icons/Papirus-Dark/index.theme
+name=Papirus-Dark-Grey
+dest="${XDG_DATA_HOME:-$HOME/.local/share}/icons/$name"
+
+# Rebuild only when Papirus's folder directories or this script changed since the last build.
+# 16x16 folders are drawn in the theme's text colour, so they need no redirect.
+stamp="$(stat -c '%n %Y' "$src"/*/places "$index" "$0" | sha256sum)"
+[[ -f $dest/.stamp && $(<"$dest/.stamp") == "$stamp" ]] && exit 0
+
+mkdir -p "${dest%/*}"
+tmp="$(mktemp -d "$dest.XXXXXX")"
+trap 'rm -rf "$tmp"' EXIT
+
+dirs=()
+scaled=()
+for places in "$src"/*/places; do
+	size="${places#"$src"/}"
+	size="${size%/places}"
+	# Only directories Papirus-Dark declares are searched by icon lookups
+	grep -qxF "[$size/places]" "$index" || continue
+	made=0
+	for icon in "$places"/*.svg; do
+		[[ -L $icon ]] || continue
+		target="$(readlink -f "$icon")"
+		[[ ${target##*/} =~ ^(folder|user)-blue(.*)$ ]] || continue
+		grey="${target%/*}/${BASH_REMATCH[1]}-grey${BASH_REMATCH[2]}"
+		[[ -e $grey ]] || continue
+		mkdir -p "$tmp/$size/places"
+		ln -s "$grey" "$tmp/$size/places/${icon##*/}"
+		made=1
+	done
+	((made)) || continue
+	if [[ $size == *@2x ]]; then scaled+=("$size/places"); else dirs+=("$size/places"); fi
+done
+
+{
+	printf '[Icon Theme]\nName=%s\nComment=Papirus-Dark with grey folders\nInherits=Papirus-Dark,hicolor\n' "$name"
+	printf 'Directories=%s\n' "$(IFS=,; echo "${dirs[*]}")"
+	printf 'ScaledDirectories=%s\n' "$(IFS=,; echo "${scaled[*]}")"
+	for d in "${dirs[@]}" "${scaled[@]}"; do
+		printf '\n'
+		grep -A4 -xF "[$d]" "$index" | sed '/^$/q' | sed '/^$/d'
+	done
+} >"$tmp/index.theme"
+printf '%s\n' "$stamp" >"$tmp/.stamp"
+
+chmod 755 "$tmp"
+if [[ -d $dest ]]; then
+	old="$(mktemp -d "$dest.old.XXXXXX")"
+	mv -T "$dest" "$old/theme"
+	mv -T "$tmp" "$dest"
+	rm -rf "$old"
+else
+	mv -T "$tmp" "$dest"
+fi
+trap - EXIT

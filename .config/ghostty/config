@@ -1,0 +1,37 @@
+theme = tyrian-nocturne
+background-opacity = 0.82
+background-blur = false
+font-family = Myna
+font-family-bold = Myna
+font-family-italic = Myna
+font-family-bold-italic = Myna
+font-size = 18
+font-thicken = false
+cursor-style = bar
+adjust-cursor-thickness = 6
+shell-integration-features = no-cursor
+cursor-style-blink = true
+window-decoration = none
+window-theme = ghostty
+window-vsync = true
+gtk-titlebar = true
+gtk-titlebar-style = tabs
+window-show-tab-bar = auto
+gtk-tabs-location = top
+gtk-wide-tabs = false
+gtk-toolbar-style = flat
+window-padding-x = 16
+window-padding-y = 12
+minimum-contrast = 1
+mouse-scroll-multiplier = discrete:1,precision:0.3
+copy-on-select = clipboard
+
+# modernisation
+window-padding-balance = true
+unfocused-split-opacity = 0.85
+split-divider-color = #ae55d9
+quick-terminal-position = top
+quick-terminal-size = 40%
+quick-terminal-space-behavior = remain
+
+keybind = super+backquote=toggle_quick_terminal

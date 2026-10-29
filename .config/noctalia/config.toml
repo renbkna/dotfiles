@@ -1,0 +1,243 @@
+# Noctalia shell config (declarative layer). Noctalia merges every *.toml here alphabetically,
+# then ~/.local/state/noctalia/settings.toml (GUI edits) last, which wins key by key.
+# Personal values (note and caption text, photo path) live in the untracked local.toml,
+# which sorts after this file and overrides it.
+
+[bar.default]
+auto_hide = false
+background_opacity = 0.0
+border = "outline_variant"
+border_width = 0.0
+capsule = true
+capsule_fill = "surface_container"
+capsule_opacity = 0.8
+capsule_thickness = 0.76
+center = [ "media", "clock", "weather" ]
+compositor_blur = false
+concave_edge_corners = false
+enabled = true
+end = [ "tray", "clipboard", "notifications", "sysmon", "battery", "settings", "session" ]
+font_scale = 1.0
+font_weight = 500
+hover_highlight = true
+layer = "top"
+margin_edge = 7
+margin_ends = 8
+margin_opposite_edge = 0
+padding = 4
+position = "top"
+radius = 12
+reserve_space = true
+scale = 1.0
+shadow = false
+show_tooltip = true
+start = [ "launcher", "workspaces", "active_window" ]
+thickness = 30
+widget_spacing = 4
+
+[brightness]
+enable_ddcutil = true
+
+[calendar]
+enabled = true
+
+# Layout for the 2560x1440 main monitor: photo and caption top right, note bottom right,
+# clock, date and media player bottom left; 96 px margins, 32 px gaps, 16 px radii.
+[desktop_widgets]
+enabled = true
+schema_version = 2
+widget_order = [ "mem_a", "cap_a", "note_1", "clock_time", "clock_date", "media_1" ]
+
+    [desktop_widgets.grid]
+    cell_size = 16
+    major_interval = 4
+    visible = true
+
+    [desktop_widgets.widget.mem_a]
+    box_height = 420.0
+    box_width = 560.0
+    cx = 2184.0
+    cy = 306.0
+    output = "DP-1"
+    placement_height = 1440.0
+    placement_width = 2560.0
+    rotation = 0.0
+    type = "sticker"
+
+        # Export the image at exactly 548x408 (box minus padding) so it is not resampled.
+        [desktop_widgets.widget.mem_a.settings]
+        background = true
+        background_color = "surface_container"
+        background_opacity = 0.8
+        background_padding = 6
+        background_radius = 16
+        opacity = 1.0
+
+    [desktop_widgets.widget.cap_a]
+    box_height = 0.0
+    box_width = 0.0
+    cx = 2184.0
+    cy = 571.0
+    output = "DP-1"
+    placement_height = 1440.0
+    placement_width = 2560.0
+    rotation = 0.0
+    type = "label"
+
+        [desktop_widgets.widget.cap_a.settings]
+        background = false
+        color = "on_surface_variant"
+        description = "date"
+        opacity = 1.0
+        shadow = false
+        title = "Caption"
+
+    [desktop_widgets.widget.note_1]
+    box_height = 272.0
+    box_width = 320.0
+    cx = 2304.0
+    cy = 1192.0
+    output = "DP-1"
+    placement_height = 1440.0
+    placement_width = 2560.0
+    rotation = 0.0
+    type = "label"
+
+        [desktop_widgets.widget.note_1.settings]
+        background = true
+        background_color = "surface_container"
+        background_opacity = 0.8
+        background_padding = 16
+        background_radius = 16
+        color = "on_surface_variant"
+        description = "•  Set this note in local.toml"
+        shadow = false
+        title = "Note"
+
+    [desktop_widgets.widget.clock_time]
+    box_height = 200.0
+    box_width = 480.0
+    cx = 336.0
+    cy = 996.0
+    output = "DP-1"
+    placement_height = 1440.0
+    placement_width = 2560.0
+    rotation = 0.0
+    type = "clock"
+
+        [desktop_widgets.widget.clock_time.settings]
+        background = false
+        center_text = false
+        clock_style = "digital"
+        color = "on_surface"
+        format = "{:%H:%M}"
+        shadow = true
+
+    [desktop_widgets.widget.clock_date]
+    box_height = 48.0
+    box_width = 480.0
+    cx = 336.0
+    cy = 1089.0
+    output = "DP-1"
+    placement_height = 1440.0
+    placement_width = 2560.0
+    rotation = 0.0
+    type = "clock"
+
+        [desktop_widgets.widget.clock_date.settings]
+        background = false
+        center_text = false
+        clock_style = "digital"
+        color = "on_surface_variant"
+        format = "{:%A, %d. %B}"
+        shadow = true
+
+    [desktop_widgets.widget.media_1]
+    box_height = 192.0
+    box_width = 480.0
+    cx = 336.0
+    cy = 1232.0
+    output = "DP-1"
+    placement_height = 1440.0
+    placement_width = 2560.0
+    rotation = 0.0
+    type = "media_player"
+
+        [desktop_widgets.widget.media_1.settings]
+        audio_visualizer = true
+        background_color = "surface_container"
+        background_opacity = 0.8
+        background_radius = 16
+        color = "on_surface_variant"
+        hide_when_no_media = true
+
+[dock]
+cross_axis_padding = 6
+enabled = true
+icon_size = 32
+launcher_position = "start"
+main_axis_padding = 12
+reserve_space = false
+show_dots = true
+smart_auto_hide = true
+
+[idle.behavior.lock]
+action = "lock"
+enabled = true
+timeout = 600
+
+[idle.behavior.lock-and-suspend]
+action = "lock_and_suspend"
+enabled = true
+timeout = 900
+
+[idle.behavior.screen-off]
+action = "screen_off"
+enabled = true
+timeout = 660
+
+# Coordinates are resolved at runtime and never written here.
+[location]
+address = ""
+auto_locate = true
+
+[lockscreen_widgets]
+enabled = false
+
+[nightlight]
+enabled = true
+force = true
+temperature_night = 3900
+
+[plugins]
+enabled = [ "nightwatch75/file-search", "noctalia/notes" ]
+
+[shell]
+polkit_agent = true
+screen_time_enabled = true
+
+    [shell.greeter_sync]
+    auto_sync = true
+
+    [shell.launcher]
+    app_grid = true
+
+    [shell.panel]
+    transparency_mode = "soft"
+
+[theme]
+builtin = "Noctalia"
+mode = "dark"
+source = "wallpaper"
+wallpaper_scheme = "m3-monochrome"
+
+    [theme.templates]
+    builtin_ids = [ "gtk4", "gtk3", "kcolorscheme", "hyprland" ]
+    community_ids = [ "discord" ]
+
+[widget.media]
+show_progress = true
+title_scroll = "on_hover"
+
+[widget.workspaces]
+style = "minimal"

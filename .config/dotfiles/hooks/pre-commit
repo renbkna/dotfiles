@@ -1,0 +1,85 @@
+#!/usr/bin/env python3
+"""Refuses commits that would publish private data from this public dotfiles repo.
+
+Private data is whatever the untracked local override files hold (every string value in
+~/.config/noctalia/local.toml and every quoted string in ~/.config/hypr/shell/local.lua),
+plus secrets and coordinates by pattern. Private files themselves may never be staged.
+"""
+import pathlib
+import re
+import subprocess
+import sys
+import tomllib
+
+HOME = pathlib.Path.home()
+LOCAL_TOML = HOME / ".config/noctalia/local.toml"
+LOCAL_LUA = HOME / ".config/hypr/shell/local.lua"
+
+FORBIDDEN_PATHS = [
+    re.compile(p)
+    for p in (
+        r"(^|/)local\.(toml|lua)$",
+        r"(^|/)fish_variables$",
+        r"cookies",
+        r"^\.local/state/",
+        r"\.(pem|key)$",
+    )
+]
+FORBIDDEN_PATTERNS = [
+    re.compile(p, re.IGNORECASE)
+    for p in (
+        r"\b(latitude|longitude)\s*=\s*-?\d",
+        r"apikey_[A-Za-z0-9]",
+        r"\b(api[_-]?key|secret|token|password)\s*[:=]\s*['\"]?[A-Za-z0-9_\-]{12,}",
+    )
+]
+
+
+def git(*args: str) -> str:
+    return subprocess.run(["git", *args], check=True, capture_output=True, text=True).stdout
+
+
+def toml_strings(node: object) -> list[str]:
+    if isinstance(node, dict):
+        return [s for v in node.values() for s in toml_strings(v)]
+    if isinstance(node, list):
+        return [s for v in node for s in toml_strings(v)]
+    return [node] if isinstance(node, str) else []
+
+
+def private_values() -> list[str]:
+    values: list[str] = []
+    if LOCAL_TOML.exists():
+        with LOCAL_TOML.open("rb") as f:
+            for value in toml_strings(tomllib.load(f)):
+                # Compare text, not decoration: drop leading bullets and punctuation per line.
+                values.extend(re.sub(r"^\W+", "", line).strip() for line in value.splitlines())
+    if LOCAL_LUA.exists():
+        values.extend(re.findall(r'"([^"\n]+)"', LOCAL_LUA.read_text()))
+    # Short fragments ("1", bullet glyphs) would match everywhere and prove nothing.
+    return sorted({v for v in values if len(v) >= 6}, key=len, reverse=True)
+
+
+def main() -> int:
+    staged = [p for p in git("diff", "--cached", "--name-only", "--diff-filter=ACMR", "-z").split("\0") if p]
+    values = private_values()
+    problems: list[str] = []
+    for path in staged:
+        if any(rx.search(path) for rx in FORBIDDEN_PATHS):
+            problems.append(f"{path}: private file must stay untracked")
+            continue
+        content = subprocess.run(["git", "show", f":{path}"], capture_output=True).stdout.decode("utf-8", "replace")
+        for value in values:
+            if value in content:
+                problems.append(f"{path}: contains a value from a local override file: {value[:24]!r}")
+        for rx in FORBIDDEN_PATTERNS:
+            if match := rx.search(content):
+                problems.append(f"{path}: matches private pattern: {match.group(0)[:24]!r}")
+    if problems:
+        print("pre-commit: refusing to publish private data:", *problems, sep="\n  ", file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
