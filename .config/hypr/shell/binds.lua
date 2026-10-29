@@ -3,6 +3,7 @@
 -- === Application Launchers ===
 hl.bind("SUPER + T", hl.dsp.exec_cmd("ghostty"))
 hl.bind("SUPER + Return", hl.dsp.exec_cmd("ghostty"))   -- modern: Enter also opens a terminal
+hl.bind("SUPER + grave", hl.dsp.exec_cmd("ghostty +toggle-quick-terminal"))   -- global; Ghostty's own keybinds only work while it has focus
 hl.bind("SUPER + space", hl.dsp.window.float({ action = "toggle" }))
 hl.bind("ALT + space", hl.dsp.exec_cmd("noctalia msg panel-toggle launcher"))
 hl.bind("SUPER + SUPER_L", hl.dsp.exec_cmd("noctalia msg panel-toggle launcher"), { release = true })   -- tap Super

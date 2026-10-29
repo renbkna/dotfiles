@@ -224,6 +224,11 @@ screen_time_enabled = true
 
     [shell.panel]
     transparency_mode = "soft"
+    # The bar is transparent, and attached panels take the bar's background, so these
+    # float to get the soft panel background and blur instead.
+    control_center_placement = "floating"
+    wallpaper_placement = "floating"
+    session_placement = "floating"
 
 [theme]
 builtin = "Noctalia"

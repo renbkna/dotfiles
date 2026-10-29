@@ -24,14 +24,12 @@ window-padding-x = 16
 window-padding-y = 12
 minimum-contrast = 1
 mouse-scroll-multiplier = discrete:1,precision:0.3
-copy-on-select = clipboard
+copy-on-select = both
 
 # modernisation
-window-padding-balance = true
+window-padding-balance = equal
 unfocused-split-opacity = 0.85
 split-divider-color = #ae55d9
 quick-terminal-position = top
 quick-terminal-size = 40%
 quick-terminal-space-behavior = remain
-
-keybind = super+backquote=toggle_quick_terminal

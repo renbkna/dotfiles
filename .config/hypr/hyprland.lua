@@ -44,6 +44,11 @@ hl.config({
 		disable_hyprland_logo = true,
 		disable_splash_rendering = true,
 	},
+	-- Testing: automatic HDR switching for fullscreen HDR content re-modesets DP-1, which
+	-- blanks the screen; suspected cause of the black flash when a video goes fullscreen.
+	render = {
+		cm_auto_hdr = 0,
+	},
 	dwindle = {
 		preserve_split = true,
 	},
