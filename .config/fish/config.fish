@@ -6,6 +6,9 @@ if status is-interactive
     command -v direnv &> /dev/null && direnv hook fish | source
     command -v zoxide &> /dev/null && zoxide init fish --cmd cd | source
 
+    # Atuin: searchable shell history on Ctrl+R and Up
+    command -v atuin &> /dev/null && atuin init fish | source
+
     # Better ls
     command -v eza &> /dev/null && alias ls='eza --icons --group-directories-first -1'
 
