@@ -89,11 +89,5 @@ require("shell.cursor")
 require("shell.binds")
 require("shell.windowrules")
 
--- Machine-specific rules (monitor descriptions with serial numbers) live in the untracked
--- shell/local.lua; a machine without one runs the shared config alone.
-if package.searchpath("shell.local", package.path) then
-	require("shell.local")
-end
-
 -- For Noctalia Color templates
 require("noctalia").apply_theme()

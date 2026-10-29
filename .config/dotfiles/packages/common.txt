@@ -9,7 +9,7 @@ tealdeer
 cachyos-kernel-manager cachyos-keyring cachyos-micro-settings cachyos-mirrorlist
 cachyos-packageinstaller cachyos-rate-mirrors cachyos-settings cachyos-snapper-support
 cachyos-v3-mirrorlist cachyos-v4-mirrorlist cachyos-wallpapers cantarell-fonts cargo-deny
-cargo-llvm-cov cargo-nextest cargo-tauri cava ccache chafa char-white chatgpt-desktop-bin chromium
+cargo-llvm-cov cargo-nextest cargo-tauri ccache chafa char-white chatgpt-desktop-bin chromium
 chwd clamav claude-desktop cmake cmus colord cppcheck cpupower crun cryptsetup curl darkly-bin
 ddcutil device-mapper diffutils direnv dmidecode dmraid dnsmasq docker-compose dosfstools
 dotnet-host-bin dotnet-sdk-bin duf dust e2fsprogs edk2-ovmf efibootmgr efitools en-croissant-deb

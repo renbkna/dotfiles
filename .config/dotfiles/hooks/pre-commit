@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Refuses commits that would publish private data from this public dotfiles repo.
 
-Private data is whatever the untracked local override files hold (every string value in
-~/.config/noctalia/local.toml and every double-quoted string in ~/.config/hypr/shell/local.lua),
-plus secrets and coordinates by pattern. A commit that includes a private file is refused too.
+Private data is whatever the untracked override file ~/.config/noctalia/local.toml holds (every
+string value), plus secrets and coordinates by pattern. A commit that includes a private file is
+refused too.
 `git add` itself is not guarded, so staged-then-unstaged content stays in the local object store
 until `git gc` prunes it.
 """
@@ -15,12 +15,11 @@ import tomllib
 
 HOME = pathlib.Path.home()
 LOCAL_TOML = HOME / ".config/noctalia/local.toml"
-LOCAL_LUA = HOME / ".config/hypr/shell/local.lua"
 
 FORBIDDEN_PATHS = [
     re.compile(p)
     for p in (
-        r"(^|/)local\.(toml|lua)$",
+        r"(^|/)local\.toml$",
         r"(^|/)fish_variables$",
         r"cookies",
         r"^\.local/state/",
@@ -56,8 +55,6 @@ def private_values() -> list[str]:
             for value in toml_strings(tomllib.load(f)):
                 # Compare text, not decoration: drop leading bullets and punctuation per line.
                 values.extend(re.sub(r"^\W+", "", line).strip() for line in value.splitlines())
-    if LOCAL_LUA.exists():
-        values.extend(re.findall(r'"([^"\n]+)"', LOCAL_LUA.read_text()))
     # Short fragments ("1", bullet glyphs) would match everywhere and prove nothing.
     return sorted({v for v in values if len(v) >= 6}, key=len, reverse=True)
 

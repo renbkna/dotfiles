@@ -40,7 +40,7 @@ Material 3 motion. Editors and terminals use [Tyrian Night](https://github.com/r
 3. Run `~/.local/bin/dotfiles-bootstrap` (its header lists what it does).
 4. Reboot, log in through the greeter and run it again; Hyprland reports a missing
    `noctalia.lua` until then.
-5. Restore what no repo holds: the local overrides below and what they name, SSH keys,
+5. Restore what no repo holds: the local override below and what it names, SSH keys,
    `gh auth login`, `~/.config/fish/fish_variables`, browser profiles.
 6. On other hardware, adjust `.config/hypr/shell/outputs.lua` and the widget positions in
    `.config/noctalia/config.toml`.
@@ -48,12 +48,10 @@ Material 3 motion. Editors and terminals use [Tyrian Night](https://github.com/r
 Rerun the bootstrap after changing the Ghostty theme. `dotfiles-packages diff` and
 `dotfiles-system --check` report drift.
 
-## Local overrides (never committed)
+## Local override (never committed)
 
-| File | Holds |
-|---|---|
-| `~/.config/noctalia/local.toml` | Note and caption text, photo and wallpaper paths; overrides `config.toml`. |
-| `~/.config/hypr/shell/local.lua` | Rules naming a monitor by description (includes its serial). |
+`~/.config/noctalia/local.toml` holds the note and caption text and the photo and wallpaper
+paths; it overrides `config.toml`.
 
 ```toml
 [desktop_widgets.widget.mem_a.settings]
@@ -65,4 +63,4 @@ description = "•  first line"
 ```
 
 The pre-commit hook in `.config/dotfiles/hooks/` refuses commits that include a local or secret
-file, a value from the overrides, coordinates or an API-key pattern.
+file, a value from the override, coordinates or an API-key pattern.
