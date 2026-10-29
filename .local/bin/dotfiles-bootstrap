@@ -15,6 +15,25 @@ end
 systemctl --user daemon-reload; or exit 1
 systemctl --user enable noctalia.service monthly-trash-clean.timer gamemoded.service; or exit 1
 
+# Myna, the terminal and editor font: the AUR package lags at 1.0, so the pinned 2.0 release
+# (OFL-1.1) is installed from upstream and verified against its checksum.
+set -l myna_url https://github.com/sayyadirfanali/Myna/releases/download/v2.0.0.0-beta/Myna-v2.0.0-beta.zip
+set -l myna_sha256 0013ff1c868356f4dbcb9a58799a779b3c86cf2e545eafd71e3f32c38fcf8a7b
+set -l myna_dir ~/.local/share/fonts/Myna
+if not string match -q $myna_sha256 (cat $myna_dir/.release-sha256 2>/dev/null)
+    set -l archive (mktemp --suffix=.zip)
+    curl -fsSL -o $archive $myna_url; or exit 1
+    if not echo "$myna_sha256  $archive" | sha256sum --check --quiet
+        echo "dotfiles-bootstrap: Myna archive does not match its pinned checksum" >&2
+        rm $archive
+        exit 1
+    end
+    mkdir -p $myna_dir; and unzip -joq $archive 'fonts/*' -d $myna_dir; or exit 1
+    echo $myna_sha256 >$myna_dir/.release-sha256
+    rm $archive
+    fc-cache $myna_dir
+end
+
 if not test -d $tyrian/.git
     git clone https://github.com/renbkna/tyrian-night.git $tyrian; or exit 1
 end

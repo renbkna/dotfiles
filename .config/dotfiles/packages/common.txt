@@ -29,7 +29,7 @@ linux-firmware lldb logrotate lsb-release lsp-plugins-vst3 lsscsi lvm2 maia3-git
 mdadm meld mesa-utils micro mkinitcpio modemmanager mold mtools nano nano-syntax-highlighting
 nautilus networkmanager networkmanager-openvpn nfs-utils nilfs-utils noctalia noctalia-greeter
 nodejs noto-fonts noto-fonts-cjk noto-fonts-emoji nss-mdns ntfs-3g obsidian okular opencode openssh
-os-prober otf-monaspace otf-monaspace-nerd otf-myna pacman-contrib pandoc-cli papirus-folders
+os-prober otf-monaspace otf-monaspace-nerd pacman-contrib pandoc-cli papirus-folders
 papirus-icon-theme partitionmanager paru perf perl phonon-qt6-vlc pipewire pipewire-alsa
 pipewire-audio pipewire-jack pipewire-pulse pkgfile playerctl plocate plymouth podman podman-docker
 poppler-glib power-profiles-daemon prismlauncher pv pwvucontrol python python-defusedxml
