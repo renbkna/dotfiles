@@ -8,16 +8,20 @@ use the [Tyrian Night](https://github.com/renbkna/tyrian-night) theme.
 |---|---|---|
 | Hyprland (Lua config) | 0.57 | `.config/hypr/` |
 | Noctalia shell | 5.4 | `.config/noctalia/config.toml` |
-| Ghostty | 1.3 | `.config/ghostty/config` |
-| fish + Starship + fastfetch | | `.config/fish/`, `.config/starship.toml`, `.config/fastfetch/` |
+| Ghostty | 1.4 | `.config/ghostty/config.ghostty` |
+| fish + Starship + fastfetch | fish 4.9 | `.config/fish/`, `.config/fastfetch/` |
 | Qt: qt6ct-kde + Darkly | Darkly 0.5 | `.config/qt6ct/`, `.config/darklyrc` |
-| Icons: Papirus-Dark with grey folders | Papirus 20260801 | `.local/bin/papirus-grey-folders` |
+| Icons: Papirus-Dark, folders follow the palette | Papirus 20260801 | `.local/bin/papirus-noctalia-folders` |
 
 ## Design
 
 - **Colour:** Noctalia generates an `m3-monochrome` palette from the wallpaper and writes it
-  to GTK, Qt (KColorScheme), Hyprland borders and Discord through its templates. Coding tools
-  (Ghostty, Zed, VS Code, fish) keep Tyrian Night on purpose.
+  to GTK, Qt (KColorScheme), Hyprland borders and Discord through its templates. A user
+  template gives Papirus folders the Papirus colour nearest the palette's primary, so a
+  neutral palette keeps them grey; GTK, Qt and KDE all name the resulting
+  `Papirus-Dark-Noctalia` theme, which `.config/qt6ct/qt6ct.conf` defines. Coding tools
+  (Ghostty, Zed, VS Code, fish, the Starship prompt and the fastfetch greeting) keep Tyrian
+  Night on purpose.
 - **Glass:** one blur, defined in Hyprland. Shell surfaces (bar capsules, panels, dock,
   notifications, desktop cards) are tinted to 0.8 and blurred by the layer rules in
   `.config/hypr/shell/layout.lua`. App content stays opaque; Qt menus and toolbars are 80%.
@@ -39,13 +43,15 @@ dots config status.showUntrackedFiles no
 dots config core.hooksPath ~/.config/dotfiles/hooks
 ```
 
-Then:
+Then log into Hyprland, open a terminal and run `~/.local/bin/dotfiles-bootstrap`. It clones
+tyrian-night to `~/Projects/tyrian-night` and links its Ghostty themes, its fish greeting and
+the fish startup file for the variant `config.ghostty` names (which wires the matching fish
+colours, Starship prompt and fastfetch colours). It sets the icon theme for GTK (dconf) and KDE
+(`kdeglobals`), and applies Noctalia's templates, which write the `~/.config/hypr/noctalia.lua`
+that `hyprland.lua` requires for border colours and build the icon theme. Rerun it after
+changing the Ghostty theme; rerunning is always safe.
 
-1. Enable Noctalia's `hyprland` template (already in `config.toml`) and run
-   `noctalia msg templates-apply`. It generates `~/.config/hypr/noctalia.lua`, which
-   `hyprland.lua` requires for border colours.
-2. Install the Tyrian Night terminal themes from tyrian-night for Ghostty and fish.
-3. Optional: create the machine-specific files below.
+Optionally, create the machine-specific files below.
 
 ## Local overrides (never committed)
 
@@ -72,5 +78,6 @@ API-key pattern.
 ## Requirements
 
 Hyprland 0.57+, Noctalia 5.4+, Ghostty, fish, Starship, fastfetch, eza, zoxide, direnv,
-qt6ct-kde, Darkly, Papirus icon theme, the Bibata Modern Ice cursor and the Myna font.
+qt6ct-kde, Darkly, Papirus icon theme, Python 3.9+, kwriteconfig6 (kconfig), the Bibata
+Modern Ice cursor and the Myna font.
 Keybinds launch Ghostty, Zed (`zeditor`), Helium, Nautilus and Equibop.

@@ -1,0 +1,48 @@
+#!/usr/bin/env fish
+# Wires a fresh dotfiles checkout to what lives outside it. Run once from a terminal in the
+# first Hyprland session (Noctalia must be running); rerunning it is safe.
+
+set -l tyrian ~/Projects/tyrian-night
+
+if not test -d $tyrian/.git
+    git clone https://github.com/renbkna/tyrian-night.git $tyrian; or exit 1
+end
+
+# Tyrian Night files are linked, so `git pull` in the checkout updates them. A regular file in
+# the way is left alone: it may be a local edit.
+function link_as --argument-names source target
+    if test -e $target; and not test -L $target
+        echo "dotfiles-bootstrap: $target is not a symlink; move it aside and rerun" >&2
+        return 1
+    end
+    mkdir -p (path dirname $target); and ln -sfn $source $target
+end
+
+for theme in $tyrian/terminal/ghostty/themes/*
+    link_as $theme ~/.config/ghostty/themes/(path basename $theme); or exit 1
+end
+
+# The Ghostty theme names the variant; fish, Starship and fastfetch follow it. Rerun after
+# changing it.
+set -l variant (string match -rg '^theme\s*=\s*(tyrian-[a-z0-9-]+)\s*$' <~/.config/ghostty/config.ghostty)
+if test (count $variant) -ne 1; or not test -f $tyrian/terminal/fish/conf.d/$variant.fish
+    echo "dotfiles-bootstrap: config.ghostty needs one 'theme = tyrian-<variant>' line" >&2
+    exit 1
+end
+link_as $tyrian/terminal/fish/conf.d/$variant.fish ~/.config/fish/conf.d/tyrian-night.fish; or exit 1
+link_as $tyrian/terminal/fish/functions/fish_greeting.fish ~/.config/fish/functions/fish_greeting.fish; or exit 1
+
+# qt6ct.conf names the icon theme. GTK reads it from dconf and KDE apps from kdeglobals, which
+# the repository cannot carry.
+set -l icons (string match -rg '^icon_theme=(.+)$' <~/.config/qt6ct/qt6ct.conf)
+if test (count $icons) -ne 1
+    echo "dotfiles-bootstrap: qt6ct.conf needs one icon_theme line" >&2
+    exit 1
+end
+gsettings set org.gnome.desktop.interface icon-theme $icons; or exit 1
+kwriteconfig6 --file kdeglobals --group Icons --key Theme $icons; or exit 1
+
+# Writes ~/.config/hypr/noctalia.lua, which hyprland.lua requires for border colours, and the
+# palette colour whose hook builds the icon theme (.local/bin/papirus-noctalia-folders).
+noctalia msg templates-apply; or exit 1
+hyprctl reload >/dev/null

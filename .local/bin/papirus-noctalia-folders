@@ -1,0 +1,161 @@
+#!/usr/bin/env python3
+"""Builds the Papirus-Dark-Noctalia icon theme: Papirus-Dark with its folders in the Papirus
+folder colour nearest Noctalia's primary colour.
+
+Noctalia's `papirus_folders` user template writes the primary colour to PRIMARY_FILE and runs
+this script after every palette change; Hyprland also runs it at start so folder icons a Papirus
+update adds or renames are picked up. The theme holds only symlinks into the system Papirus
+install. Papirus's papirus-folders tool was rejected because it either rewrites package-owned
+files (root) or copies the whole theme into $HOME.
+"""
+
+import hashlib
+import math
+import os
+import re
+import shutil
+import sys
+import tempfile
+from pathlib import Path
+
+NAME = "Papirus-Dark-Noctalia"
+PAPIRUS = Path("/usr/share/icons/Papirus")
+INDEX = Path("/usr/share/icons/Papirus-Dark/index.theme")
+STATE_HOME = Path(os.environ.get("XDG_STATE_HOME") or Path.home() / ".local/state")
+PRIMARY_FILE = STATE_HOME / "papirus-noctalia-folders/primary"
+DEST = Path(os.environ.get("XDG_DATA_HOME") or Path.home() / ".local/share") / "icons" / NAME
+# Black and white encode contrast and yaru is a vendor shade of grey, so a neutral palette maps
+# to grey in both light and dark mode.
+EXCLUDED_COLOURS = {"black", "white", "yaru"}
+# Lightness only breaks ties between candidates of the same hue and chroma.
+LIGHTNESS_WEIGHT = 0.1
+
+
+def oklab(hex_colour: str) -> tuple[float, float, float]:
+    def linear(channel: int) -> float:
+        c = channel / 255
+        return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
+
+    r, g, b = (linear(int(hex_colour[i : i + 2], 16)) for i in (1, 3, 5))
+    l = (0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b) ** (1 / 3)
+    m = (0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b) ** (1 / 3)
+    s = (0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b) ** (1 / 3)
+    return (
+        0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s,
+        1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s,
+        0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s,
+    )
+
+
+def folder_colours() -> dict[str, str]:
+    """Maps each Papirus folder colour to its front-face fill, read from the installed icons."""
+    places = PAPIRUS / "64x64/places"
+    colours = {}
+    # A colour, unlike a folder category, has its own variant of every category icon.
+    for documents in places.glob("folder-*-documents.svg"):
+        colour = documents.name.removeprefix("folder-").removesuffix("-documents.svg")
+        fills = re.findall(r"fill:(#[0-9a-fA-F]{6})", (places / f"folder-{colour}.svg").read_text())
+        # Papirus draws a folder as back, paper and front, in that order.
+        if len(fills) < 3:
+            sys.exit(f"papirus-noctalia-folders: unexpected layout in folder-{colour}.svg")
+        colours[colour] = fills[2].lower()
+    return colours
+
+
+def nearest_colour(primary: str, colours: dict[str, str]) -> str:
+    pl, pa, pb = oklab(primary)
+
+    def distance(colour: str) -> float:
+        l, a, b = oklab(colours[colour])
+        return math.hypot(a - pa, b - pb) + LIGHTNESS_WEIGHT * abs(l - pl)
+
+    return min(colours.keys() - EXCLUDED_COLOURS, key=distance)
+
+
+def index_sections() -> dict[str, str]:
+    sections, current = {}, None
+    for line in INDEX.read_text().splitlines():
+        if line.startswith("["):
+            current = line[1:-1]
+            sections[current] = ""
+        elif current is not None and line:
+            sections[current] += line + "\n"
+    return sections
+
+
+def build(colour: str, tmp: Path) -> None:
+    sections = index_sections()
+    dirs, scaled = [], []
+    for places in sorted(PAPIRUS.glob("*/places")):
+        section = f"{places.parent.name}/places"
+        # Icon lookups search only the directories Papirus-Dark declares.
+        if section not in sections:
+            continue
+        made = False
+        for icon in places.glob("*.svg"):
+            if not icon.is_symlink():
+                continue
+            target = icon.resolve()
+            match = re.fullmatch(r"(folder|user)-blue(.*)", target.name)
+            if not match:
+                continue
+            recoloured = target.with_name(f"{match[1]}-{colour}{match[2]}")
+            if not recoloured.exists():
+                continue
+            (tmp / section).mkdir(parents=True, exist_ok=True)
+            (tmp / section / icon.name).symlink_to(recoloured)
+            made = True
+        if made:
+            (scaled if section.split("/")[0].endswith("@2x") else dirs).append(section)
+
+    index = [
+        "[Icon Theme]",
+        f"Name={NAME}",
+        f"Comment=Papirus-Dark with {colour} folders, the Papirus colour nearest Noctalia's primary",
+        "Inherits=Papirus-Dark,hicolor",
+        f"Directories={','.join(dirs)}",
+        f"ScaledDirectories={','.join(scaled)}",
+    ]
+    for section in dirs + scaled:
+        index += ["", f"[{section}]", sections[section].rstrip("\n")]
+    (tmp / "index.theme").write_text("\n".join(index) + "\n")
+
+
+def main() -> None:
+    try:
+        primary = PRIMARY_FILE.read_text().strip()
+    except FileNotFoundError:
+        sys.exit(f"papirus-noctalia-folders: {PRIMARY_FILE} is missing; run `noctalia msg templates-apply`")
+    if not re.fullmatch(r"#[0-9a-fA-F]{6}", primary):
+        sys.exit(f"papirus-noctalia-folders: {PRIMARY_FILE} holds {primary!r}, not #rrggbb")
+
+    colour = nearest_colour(primary, folder_colours())
+    # Rebuild only when the colour, Papirus's folder directories or this script changed.
+    inputs = [*PAPIRUS.glob("*/places"), INDEX, Path(__file__)]
+    stamp = hashlib.sha256(
+        "\n".join([colour, *(f"{p} {p.stat().st_mtime_ns}" for p in inputs)]).encode()
+    ).hexdigest()
+    if (DEST / ".stamp").is_file() and (DEST / ".stamp").read_text() == stamp:
+        return
+
+    DEST.parent.mkdir(parents=True, exist_ok=True)
+    tmp = Path(tempfile.mkdtemp(prefix=f"{NAME}.", dir=DEST.parent))
+    try:
+        build(colour, tmp)
+        (tmp / ".stamp").write_text(stamp)
+        tmp.chmod(0o755)
+        # Swap the finished theme into place so icon lookups never see a half-built tree.
+        if DEST.exists():
+            old = Path(tempfile.mkdtemp(prefix=f"{NAME}.old.", dir=DEST.parent))
+            DEST.rename(old / "theme")
+            tmp.rename(DEST)
+            shutil.rmtree(old)
+        else:
+            tmp.rename(DEST)
+    except BaseException:
+        shutil.rmtree(tmp, ignore_errors=True)
+        raise
+
+
+if __name__ == "__main__":
+    main()

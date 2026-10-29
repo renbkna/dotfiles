@@ -240,6 +240,13 @@ wallpaper_scheme = "m3-monochrome"
     builtin_ids = [ "gtk4", "gtk3", "kcolorscheme", "hyprland" ]
     community_ids = [ "discord" ]
 
+        # Folder icons take the Papirus colour nearest the palette's primary; the script
+        # rebuilds the Papirus-Dark-Noctalia theme that GTK, Qt and KDE name.
+        [theme.templates.user.papirus_folders]
+        input_path = "templates/papirus-folders-primary"
+        output_path = "$XDG_STATE_HOME/papirus-noctalia-folders/primary"
+        post_hook = "\"$HOME/.local/bin/papirus-noctalia-folders\""
+
 [widget.media]
 show_progress = true
 title_scroll = "on_hover"
