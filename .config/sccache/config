@@ -1,2 +1,3 @@
 [cache.disk]
+dir = "/home/ren/.cache/sccache"
 size = 32212254720  # 30 GiB
