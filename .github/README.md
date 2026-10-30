@@ -15,6 +15,7 @@ Material 3 motion. Editors and terminals use [Tyrian Night](https://github.com/r
 | System: greetd, Plymouth, THP | | `.local/bin/dotfiles-system` |
 | Session services | | `.config/systemd/user/` |
 | Editors | | `.config/zed/`, `.config/VSCodium/User/` |
+| Session environment and builds: sccache, mold | | `.profile`, `.cargo/config.toml`, `.config/sccache/` |
 
 ## Design
 

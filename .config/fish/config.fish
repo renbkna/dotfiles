@@ -39,15 +39,3 @@ if status is-interactive
     abbr la 'ls -a'
     abbr lla 'ls -la'
 end
-
-# C/C++ build acceleration — mirrors the cargo setup (sccache wrapper + mold linker).
-# Affects build systems that read these at configure time (CMake, autotools, make).
-# makepkg/AUR ignores these (it uses /etc/makepkg.conf and a sanitized env).
-set -gx CC "sccache clang"
-set -gx CXX "sccache clang++"
-set -gx LDFLAGS "-fuse-ld=mold"
-# sccache finds its config, and from it its cache, through the XDG_CONFIG_HOME and
-# XDG_CACHE_HOME of whichever client starts its shared server. Pinning the config keeps a
-# build under a sandboxed XDG environment (test harnesses) from moving every later build's
-# cache into a throwaway directory.
-set -gx SCCACHE_CONF ~/.config/sccache/config
