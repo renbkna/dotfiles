@@ -1,5 +1,5 @@
 theme = tyrian-nocturne
-background-opacity = 0.82
+background-opacity = 0.80
 background-blur = false
 font-family = Myna
 font-family-bold = Myna
@@ -21,7 +21,7 @@ gtk-toolbar-style = flat
 window-padding-x = 16
 window-padding-y = 12
 minimum-contrast = 1
-mouse-scroll-multiplier = discrete:1,precision:0.3
+mouse-scroll-multiplier = discrete:2,precision:0.5
 copy-on-select = both
 
 # modernisation
