@@ -12,8 +12,9 @@ export PATH="$HOME/.local/bin:$HOME/.npm-global/bin:$PATH"
 export SCCACHE_CONF="$HOME/.config/sccache/config"
 export CC=clang CXX=clang++
 export CMAKE_C_COMPILER_LAUNCHER=sccache CMAKE_CXX_COMPILER_LAUNCHER=sccache
-# One linker for C, C++ and Rust: mold linked Crabling's test binaries about twice as fast as
-# rustc's default rust-lld (30 Oct 2026).
+# One linker for C, C++ and Rust; without it C and C++ link with GNU ld. On Crabling's test
+# binaries (30 Oct 2026, interleaved rebuilds) mold was about 10-15% faster than rustc's default
+# rust-lld, and wild was no faster than mold overall.
 linker=mold
 export LDFLAGS="-fuse-ld=$linker"
 export CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER=clang
